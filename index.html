@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>作業點名簿＋ v2.0 History04｜登記區寬度與刪除按鈕修正版</title>
+<title>作業點名簿＋ v2.0 History05｜回退穩定版與刪除按鈕修正</title>
 <style>
 :root{--bg:#f4f6f8;--card:#fff;--line:#dfe5ea;--text:#2f3b46;--muted:#8794a1;--blue:#4da3ff;--red:#ef5350;--yellow:#f6c945;--green:#59bf76;--orange:#f79a49}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif}
@@ -1423,62 +1423,21 @@ body:not(.return-slip-mode) #dailySummary .current-status-heading .small{font-si
 }
 </style>
 
-<style id="history04-layout-tune-css">
-/* History04：批次刪除保留統一尺寸但加回紅色警示；桌機一般作業進度欄縮寬，讓登記日期回到同一主列右側。 */
+<style id="history05-delete-accent-css">
+/* History05：以 History03 穩定版面為基準，只保留批次刪除按鈕的紅色警示樣式；不帶入 History04 的強制同列/縮寬規則。 */
 #historyBatchDeleteBtn{
   color:#d84343!important;
   border-color:#efb2b2!important;
   background:#fff3f3!important;
 }
-#historyBatchDeleteBtn:hover{background:#ffeaea!important;border-color:#e78f8f!important}
-
-@media(min-width:761px){
-  body:not(.return-slip-mode) #homeworkEntryBody .homework-entry-progress{
-    flex-wrap:nowrap!important;
-    align-items:flex-end!important;
-    gap:7px 12px!important;
-  }
-  body:not(.return-slip-mode) #homeworkEntryBody .homework-entry-progress>.field.grow{
-    flex:1 1 auto!important;
-    width:auto!important;
-    min-width:0!important;
-    max-width:650px!important;
-  }
-  body:not(.return-slip-mode) #homeworkEntryBody .homework-entry-progress>.field:not(.grow){
-    flex:0 0 184px!important;
-    width:184px!important;
-    margin-left:auto!important;
-  }
-  body:not(.return-slip-mode) #homeworkEntryBody .homework-entry-progress .direct-progress{
-    width:100%!important;
-    max-width:650px!important;
-    grid-template-columns:auto minmax(0,1fr)!important;
-  }
-  body:not(.return-slip-mode) #homeworkEntryBody .homework-entry-progress .direct-progress>.unit-inline{
-    width:auto!important;
-    max-width:520px!important;
-    flex-wrap:nowrap!important;
-  }
-  body:not(.return-slip-mode) #homeworkEntryBody .homework-entry-progress .direct-progress #unitType{
-    flex:0 0 72px!important;min-width:72px!important;
-  }
-  body:not(.return-slip-mode) #homeworkEntryBody .homework-entry-progress .direct-progress #unitNums{
-    flex:0 1 180px!important;min-width:135px!important;width:180px!important;
-  }
-  body:not(.return-slip-mode) #homeworkEntryBody .homework-entry-progress .direct-progress #unitDetail{
-    flex:0 1 220px!important;width:220px!important;max-width:220px!important;min-width:165px!important;
-  }
-  body:not(.return-slip-mode) #homeworkEntryBody .homework-entry-progress .direct-progress>.free-inline{
-    width:100%!important;max-width:520px!important;min-width:0!important;
-  }
-  body:not(.return-slip-mode) #homeworkEntryBody .homework-entry-progress .direct-progress #freeProgress{
-    width:100%!important;min-width:0!important;max-width:520px!important;
-  }
+#historyBatchDeleteBtn:hover{
+  background:#ffeaea!important;
+  border-color:#e78f8f!important;
 }
 </style>
 </head>
 <body>
-<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 History04</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
+<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 History05</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
 <div id="sandboxNotice" style="margin:10px auto 0;max-width:1180px;padding:8px 12px;border:1px solid #d5a72c;border-radius:10px;background:#fff8dc;color:#6b5314;font-size:13px;font-weight:700;box-sizing:border-box">🧪 r8 Sandbox 測試資料隔離模式｜不讀寫正式版 localStorage／Firestore 文件</div>
 <section id="cloudPanel" class="cloud-panel" aria-hidden="true">
   <div class="cloud-panel-head">
