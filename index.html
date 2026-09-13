@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>作業點名簿＋ v2.0 History12｜日期欄再下移版</title>
+<title>作業點名簿＋ v2.0 History13｜日期欄再下移版</title>
 <style>
 :root{--bg:#f4f6f8;--card:#fff;--line:#dfe5ea;--text:#2f3b46;--muted:#8794a1;--blue:#4da3ff;--red:#ef5350;--yellow:#f6c945;--green:#59bf76;--orange:#f79a49}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif}
@@ -1604,9 +1604,37 @@ body.return-slip-mode .homework-entry-progress .direct-progress:not(:has(.skip-p
 
 
 
+
+<style id="history13-category-data-clear-css">
+/* History13：類別資料批次清除。只刪除勾選類別的正式歷史紀錄，不刪類別設定，也不動尚未儲存草稿。 */
+.cat-data-clear-panel{
+  grid-column:1/-1;
+  margin-top:8px;padding:9px 10px;border:1px solid #efcaca;border-radius:10px;background:#fff8f7;
+}
+.cat-data-clear-head{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.cat-data-clear-title{font-size:13px;font-weight:800;color:#9d3535}
+.cat-data-clear-hint{margin-top:3px;font-size:11.5px;line-height:1.45;color:var(--muted)}
+.cat-data-clear-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 10px;margin-top:8px}
+.cat-data-clear-item{display:flex;align-items:center;gap:7px;min-width:0;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:#fff;font-size:12.5px}
+.cat-data-clear-item input{flex:0 0 auto}
+.cat-data-clear-item .name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700}
+.cat-data-clear-item .count{margin-left:auto;flex:0 0 auto;color:var(--muted);font-size:11.5px}
+.cat-data-clear-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:wrap;margin-top:8px}
+.cat-data-clear-actions .btn{min-height:32px;padding:5px 8px;font-size:12px;border-radius:8px}
+.cat-data-clear-summary{margin-right:auto;font-size:12px;color:#7b4b4b;font-weight:700}
+.cat-data-clear-confirm{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:8px;padding:8px 9px;border:1px solid #e9b0b0;border-radius:8px;background:#fff1f1;font-size:12px}
+.cat-data-clear-confirm .actions{display:flex;gap:6px;margin-left:auto}
+@media(max-width:560px){
+  .cat-data-clear-list{grid-template-columns:1fr}
+  .cat-data-clear-actions{justify-content:stretch}
+  .cat-data-clear-summary{flex:1 0 100%;margin-right:0}
+  .cat-data-clear-actions .btn{flex:1 1 auto}
+}
+</style>
+
 </head>
 <body>
-<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 History12</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
+<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 History13</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
 <div id="sandboxNotice" style="margin:10px auto 0;max-width:1180px;padding:8px 12px;border:1px solid #d5a72c;border-radius:10px;background:#fff8dc;color:#6b5314;font-size:13px;font-weight:700;box-sizing:border-box">🧪 r8 Sandbox 測試資料隔離模式｜不讀寫正式版 localStorage／Firestore 文件</div>
 <section id="cloudPanel" class="cloud-panel" aria-hidden="true">
   <div class="cloud-panel-head">
@@ -2377,6 +2405,63 @@ function renderCats(){
  hint.textContent='☰ 拖曳到欄位上、下邊緣會自動捲動；連續作業會追蹤前次未完成；獨立項目與回條每一筆各自計算。回條不使用補登 OK。';
  box.appendChild(hint);
 
+ // History13：類別資料批次清除，只刪正式歷史紀錄，不刪類別本身。
+ const dataClear=document.createElement('div');dataClear.className='cat-data-clear-panel';
+ const clearHead=document.createElement('div');clearHead.className='cat-data-clear-head';
+ const clearTitle=document.createElement('div');clearTitle.className='cat-data-clear-title';clearTitle.textContent='類別資料批次清除';
+ const clearOpenBtn=document.createElement('button');clearOpenBtn.type='button';clearOpenBtn.className='btn danger';clearOpenBtn.textContent='選擇要清除的類別';
+ clearHead.append(clearTitle,clearOpenBtn);
+ const clearHint=document.createElement('div');clearHint.className='cat-data-clear-hint';clearHint.textContent='只會永久刪除所選類別的正式歷史紀錄；類別名稱、類型、順序與目前尚未儲存的登記都會保留。';
+ const clearBody=document.createElement('div');clearBody.hidden=true;
+ const clearList=document.createElement('div');clearList.className='cat-data-clear-list';
+ const clearActions=document.createElement('div');clearActions.className='cat-data-clear-actions';
+ const clearSummary=document.createElement('div');clearSummary.className='cat-data-clear-summary';clearSummary.textContent='已選 0 個類別｜0 筆紀錄';
+ const clearSelectAll=document.createElement('button');clearSelectAll.type='button';clearSelectAll.className='btn';clearSelectAll.textContent='全選有資料類別';
+ const clearCancel=document.createElement('button');clearCancel.type='button';clearCancel.className='btn';clearCancel.textContent='取消';
+ const clearDelete=document.createElement('button');clearDelete.type='button';clearDelete.className='btn danger';clearDelete.textContent='清除已選資料';clearDelete.disabled=true;
+ clearActions.append(clearSummary,clearSelectAll,clearCancel,clearDelete);clearBody.append(clearList,clearActions);
+ dataClear.append(clearHead,clearHint,clearBody);box.appendChild(dataClear);
+
+ const selectedClearCats=new Set();
+ const historyCountForCat=id=>state.history.reduce((n,h)=>n+(String(h.catId)===String(id)?1:0),0);
+ const refreshClearPanel=()=>{
+   clearList.innerHTML='';
+   let total=0;
+   state.categories.forEach(cat=>{
+     const count=historyCountForCat(cat.id);
+     const label=document.createElement('label');label.className='cat-data-clear-item';
+     const cb=document.createElement('input');cb.type='checkbox';cb.checked=selectedClearCats.has(String(cat.id));cb.disabled=count===0;
+     const name=document.createElement('span');name.className='name';name.textContent=cat.name;
+     const cnt=document.createElement('span');cnt.className='count';cnt.textContent=count?`${count} 筆`:'無資料';
+     cb.addEventListener('change',()=>{if(cb.checked)selectedClearCats.add(String(cat.id));else selectedClearCats.delete(String(cat.id));refreshClearPanel()});
+     label.append(cb,name,cnt);clearList.appendChild(label);
+     if(selectedClearCats.has(String(cat.id)))total+=count;
+   });
+   for(const id of [...selectedClearCats])if(!state.categories.some(c=>String(c.id)===id)||historyCountForCat(id)===0)selectedClearCats.delete(id);
+   total=[...selectedClearCats].reduce((n,id)=>n+historyCountForCat(id),0);
+   clearSummary.textContent=`已選 ${selectedClearCats.size} 個類別｜${total} 筆紀錄`;
+   clearDelete.disabled=selectedClearCats.size===0||total===0;
+   const dataIds=state.categories.filter(c=>historyCountForCat(c.id)>0).map(c=>String(c.id));
+   const all=dataIds.length>0&&dataIds.every(id=>selectedClearCats.has(id));
+   clearSelectAll.textContent=all?'清除選取':'全選有資料類別';
+ };
+ clearOpenBtn.addEventListener('click',()=>{clearBody.hidden=!clearBody.hidden;clearOpenBtn.textContent=clearBody.hidden?'選擇要清除的類別':'收起清除工具';if(!clearBody.hidden)refreshClearPanel()});
+ clearSelectAll.addEventListener('click',()=>{const ids=state.categories.filter(c=>historyCountForCat(c.id)>0).map(c=>String(c.id));const all=ids.length>0&&ids.every(id=>selectedClearCats.has(id));selectedClearCats.clear();if(!all)ids.forEach(id=>selectedClearCats.add(id));refreshClearPanel()});
+ clearCancel.addEventListener('click',()=>{selectedClearCats.clear();clearBody.hidden=true;clearOpenBtn.textContent='選擇要清除的類別';const old=dataClear.querySelector('.cat-data-clear-confirm');if(old)old.remove()});
+ clearDelete.addEventListener('click',()=>{
+   const ids=new Set([...selectedClearCats].filter(id=>state.categories.some(c=>String(c.id)===id)));
+   const records=state.history.filter(h=>ids.has(String(h.catId)));if(!records.length)return refreshClearPanel();
+   const old=dataClear.querySelector('.cat-data-clear-confirm');if(old)old.remove();
+   const names=state.categories.filter(c=>ids.has(String(c.id))).map(c=>c.name);
+   const confirmBox=document.createElement('div');confirmBox.className='cat-data-clear-confirm';
+   const msg=document.createElement('span');msg.textContent=`即將永久清除 ${names.length} 個類別、共 ${records.length} 筆歷史紀錄：${names.join('、')}。類別本身會保留，刪除後無法復原。`;
+   const acts=document.createElement('span');acts.className='actions';
+   const no=document.createElement('button');no.type='button';no.className='btn';no.textContent='取消';no.addEventListener('click',()=>confirmBox.remove());
+   const yes=document.createElement('button');yes.type='button';yes.className='btn danger';yes.textContent=`永久清除 ${records.length} 筆`;
+   yes.addEventListener('click',()=>{commitCategoryDataClear(ids);confirmBox.remove()});
+   acts.append(no,yes);confirmBox.append(msg,acts);dataClear.appendChild(confirmBox);
+ });
+
  const addRow=document.createElement('div');addRow.className='cat-add-item';
  const addInput=document.createElement('input');addInput.id='newCategoryInput';addInput.className='input';addInput.maxLength=30;addInput.placeholder='新增類別名稱';
  const addBtn=document.createElement('button');addBtn.type='button';addBtn.className='btn primary';addBtn.innerHTML='<span aria-hidden="true">＋</span> 新增';
@@ -2589,6 +2674,24 @@ function deleteCategoryById(id){
  progress={a:'',b:'',skipPages:'',unit:'L',unitNums:'',unitDetail:'',free:''};
  renderAll();
  renderCats();
+}
+
+function commitCategoryDataClear(categoryIds){
+ const ids=new Set([...categoryIds].map(String).filter(id=>state.categories.some(c=>String(c.id)===id)));
+ if(!ids.size)return;
+ const deletedIds=new Set(state.history.filter(h=>ids.has(String(h.catId))).map(h=>String(h.id)));
+ if(!deletedIds.size)return;
+ const affectedContinuous=[...ids].filter(id=>state.categories.find(c=>String(c.id)===id)?.kind==='continuous');
+ state.history=state.history.filter(h=>!ids.has(String(h.catId)));
+ if(historyEditId&&deletedIds.has(String(historyEditId)))cancelHistoryRecordEdit(false);
+ if(historyOkEditId&&deletedIds.has(String(historyOkEditId))){historyOkEditId='';historyOkPending.clear();}
+ if(independentSummaryViewId&&deletedIds.has(String(independentSummaryViewId)))independentSummaryViewId='';
+ if(historyBatchDeleteMode)cancelHistoryBatchDelete(false);
+ affectedContinuous.forEach(id=>recomputeContinuousResolutions(id));
+ save();
+ renderAll();
+ // 類別仍保留，且目前仍在類別編輯模式時重新繪製清除工具與筆數。
+ if(categoryEditMode)renderCats();
 }
 
 function progressFromHistory(h){
