@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>作業點名簿＋ v2.0 ReturnSlip50｜重名提示與區塊內距整理版</title>
+<title>作業點名簿＋ v2.0 ReturnSlip51｜固定表頭動態定位版</title>
 <style>
 :root{--bg:#f4f6f8;--card:#fff;--line:#dfe5ea;--text:#2f3b46;--muted:#8794a1;--blue:#4da3ff;--red:#ef5350;--yellow:#f6c945;--green:#59bf76;--orange:#f79a49}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif}
@@ -1054,6 +1054,52 @@ html.mobile-ux .cat-edit-item.drag-over-after{border-bottom:5px solid #2f9edb!im
 }
 </style>
 
+<style id="returnslip51-overview-sticky-css">
+/* ReturnSlip51：總覽固定表頭依實際 DOM 高度定位；不再假設第一列表頭固定 30px。 */
+#overviewPanel.overview-sticky-mode{
+  --overview-row1-height:0px;
+  --overview-scroll-height:55vh;
+}
+#overviewPanel.overview-sticky-mode .overview-table-wrap{
+  height:var(--overview-scroll-height)!important;
+  max-height:none!important;
+  overflow:auto!important;
+  overscroll-behavior:contain;
+}
+#overviewPanel.overview-sticky-mode .overview-table thead tr:first-child th{
+  position:sticky!important;
+  top:0!important;
+  z-index:24!important;
+  background:#f8fafc!important;
+}
+#overviewPanel.overview-sticky-mode .overview-table thead tr:nth-child(2) th{
+  position:sticky!important;
+  top:var(--overview-row1-height)!important;
+  z-index:23!important;
+  background:#f8fafc!important;
+  box-shadow:0 1px 0 var(--line)!important;
+}
+#overviewPanel.overview-sticky-mode .overview-table thead tr:first-child th.seat-col{
+  top:0!important;
+  z-index:28!important;
+}
+#overviewPanel.overview-sticky-mode .overview-table thead tr:nth-child(2) th.seat-col{
+  top:var(--overview-row1-height)!important;
+  z-index:27!important;
+}
+/* 讓最後幾列仍可捲到固定表頭下方，不以固定像素猜測尾端高度。 */
+#overviewPanel.overview-sticky-mode .overview-scroll-tail{
+  height:calc(var(--overview-scroll-height) - var(--overview-row1-height) * 2)!important;
+  min-height:calc(var(--overview-row1-height) * 3)!important;
+  max-height:none!important;
+}
+/* 手機的雲端狀態按鈕跟其他次要操作一起收進「更多」，避免卡在標題列中間。 */
+html.mobile-ux #mobileMoreMenu>#cloudToggleBtn{
+  flex:1 1 145px;
+  justify-content:center;
+}
+</style>
+
 <style id="uifix25-css">
 /* UIFix25：目前繳交情形獨立於作業登記收合區 */
 .current-submission-block{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
@@ -1244,7 +1290,7 @@ body.return-slip-mode .progress-pages-label,body.return-slip-mode .progress-mode
 </style>
 </head>
 <body>
-<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 ReturnSlip50</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
+<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 ReturnSlip51</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
 <div id="sandboxNotice" style="margin:10px auto 0;max-width:1180px;padding:8px 12px;border:1px solid #d5a72c;border-radius:10px;background:#fff8dc;color:#6b5314;font-size:13px;font-weight:700;box-sizing:border-box">🧪 r8 Sandbox 測試資料隔離模式｜不讀寫正式版 localStorage／Firestore 文件</div>
 <section id="cloudPanel" class="cloud-panel" aria-hidden="true">
   <div class="cloud-panel-head">
@@ -1767,7 +1813,7 @@ function updateMobileCategoryUI(){
 }
 function setupMobileTopbar(){
  const menu=$('mobileMoreMenu'),more=$('mobileMoreBtn');if(!menu||!more)return;
- const ids=['exportBtn','studentToggleBtn','overviewToggleBtn'];
+ const ids=['exportBtn','cloudToggleBtn','studentToggleBtn','overviewToggleBtn'];
  const importLabel=document.querySelector('.import-label');
  const header=more.parentElement;
  const categoryEdit=$('categoryEditBtn'),sideHead=document.querySelector('.sidebar .side-head');
@@ -1778,7 +1824,7 @@ function setupMobileTopbar(){
    if(importLabel&&importLabel.parentElement!==menu)menu.appendChild(importLabel);
  }else{
    const before=more;
-   const ordered=[$('exportBtn'),importLabel,$('studentToggleBtn'),$('overviewToggleBtn')].filter(Boolean);
+   const ordered=[$('exportBtn'),importLabel,$('cloudToggleBtn'),$('studentToggleBtn'),$('overviewToggleBtn')].filter(Boolean);
    ordered.forEach(el=>{if(el.parentElement===menu)header.insertBefore(el,before)});
    menu.classList.remove('show');more.textContent='更多 ▾';more.setAttribute('aria-expanded','false');
  }
@@ -3072,11 +3118,53 @@ function setOverviewViewMode(mode,save=true){
  if(expandBtn){expandBtn.classList.toggle('active',!sticky);expandBtn.setAttribute('aria-pressed',String(!sticky))}
  if(stickyBtn){stickyBtn.classList.toggle('active',sticky);stickyBtn.setAttribute('aria-pressed',String(sticky))}
  if(save){try{localStorage.setItem(OVERVIEW_VIEW_MODE_KEY,sticky?'sticky':'expanded')}catch{}}
+ if(sticky)watchOverviewStickyMetrics();
+ else if(overviewStickyResizeObserver){overviewStickyResizeObserver.disconnect();overviewStickyResizeObserver=null}
 }
 function restoreOverviewViewMode(){
  let mode='expanded';
  try{mode=localStorage.getItem(OVERVIEW_VIEW_MODE_KEY)==='sticky'?'sticky':'expanded'}catch{}
  setOverviewViewMode(mode,false);
+}
+
+let overviewStickyResizeObserver=null;
+function updateOverviewStickyMetrics(){
+ const panel=$('overviewPanel');
+ if(!panel||!panel.classList.contains('overview-sticky-mode'))return;
+ const headline=panel.querySelector('.overview-headline');
+ const wrap=panel.querySelector('.overview-table-wrap');
+ const firstRow=panel.querySelector('.overview-table thead tr:first-child');
+ if(!headline||!wrap||!firstRow)return;
+
+ // 第二列表頭永遠緊貼第一列「實際高度」，避免手機換行後產生白縫或重疊。
+ const row1Height=Math.max(1,Math.ceil(firstRow.getBoundingClientRect().height));
+ panel.style.setProperty('--overview-row1-height',`${row1Height}px`);
+
+ // 固定表頭模式保留上方操作區；可捲動高度依操作區實際高度與視窗高度計算。
+ // 不寫死桌機／手機 top 值，換行、字體與旋轉畫面後都會重新計算。
+ const controlsHeight=Math.ceil(headline.getBoundingClientRect().height);
+ const panelStyle=getComputedStyle(panel);
+ const panelChrome=(parseFloat(panelStyle.paddingTop)||0)+(parseFloat(panelStyle.paddingBottom)||0)
+   +(parseFloat(panelStyle.borderTopWidth)||0)+(parseFloat(panelStyle.borderBottomWidth)||0);
+ const wrapStyle=getComputedStyle(wrap);
+ const wrapChrome=(parseFloat(wrapStyle.borderTopWidth)||0)+(parseFloat(wrapStyle.borderBottomWidth)||0);
+ const viewportHeight=window.visualViewport?.height||window.innerHeight||document.documentElement.clientHeight;
+ const naturalReserve=controlsHeight+panelChrome+wrapChrome;
+ const minRowsHeight=row1Height*6;
+ const available=Math.max(minRowsHeight,Math.floor(viewportHeight-naturalReserve));
+ panel.style.setProperty('--overview-scroll-height',`${available}px`);
+}
+function watchOverviewStickyMetrics(){
+ if(overviewStickyResizeObserver){overviewStickyResizeObserver.disconnect();overviewStickyResizeObserver=null}
+ const panel=$('overviewPanel');if(!panel)return;
+ if('ResizeObserver' in window){
+   overviewStickyResizeObserver=new ResizeObserver(()=>requestAnimationFrame(updateOverviewStickyMetrics));
+   const headline=panel.querySelector('.overview-headline');
+   const head=panel.querySelector('.overview-table thead');
+   if(headline)overviewStickyResizeObserver.observe(headline);
+   if(head)overviewStickyResizeObserver.observe(head);
+ }
+ requestAnimationFrame(updateOverviewStickyMetrics);
 }
 
 function overviewProgressDateHTML(h,c){
@@ -3106,6 +3194,7 @@ function overviewColumns(){
 function renderOverview(){
  const cols=overviewColumns();
  $('overviewHead').innerHTML=`<tr><th class="seat-col">類別</th>${cols.map(({c})=>`<th class="cat-head">${esc(c.name)}${c.kind==='independent'?'<span class="independent-badge" title="獨立項目" aria-label="獨立項目">獨</span>':''}</th>`).join('')}</tr><tr><th class="seat-col axis-text">座號＼進度＆日期</th>${cols.map(({c,h})=>`<th class="date-head">${overviewProgressDateHTML(h,c)}</th>`).join('')}</tr>`;
+ if($('overviewPanel')?.classList.contains('overview-sticky-mode'))requestAnimationFrame(updateOverviewStickyMetrics);
  let rows='';
  for(let n=1;n<=state.studentCount;n++){
    let cells='';
@@ -3586,8 +3675,9 @@ updateMobileCategoryUI();
 setContactCollapsed(contactCollapsed);
 setHistoryCollapsed(historyCollapsed);
 setupMobileTopbar();
-window.addEventListener('resize',()=>{syncMobileUXClass();setupMobileTopbar();updateMobileCategoryUI()});
-window.addEventListener('orientationchange',()=>setTimeout(()=>{syncMobileUXClass();setupMobileTopbar();updateMobileCategoryUI()},80));
+window.addEventListener('resize',()=>{syncMobileUXClass();setupMobileTopbar();updateMobileCategoryUI();requestAnimationFrame(updateOverviewStickyMetrics)});
+window.addEventListener('orientationchange',()=>setTimeout(()=>{syncMobileUXClass();setupMobileTopbar();updateMobileCategoryUI();updateOverviewStickyMetrics()},80));
+window.visualViewport?.addEventListener('resize',()=>requestAnimationFrame(updateOverviewStickyMetrics));
 $('contactCollapseBtn').addEventListener('click',()=>setContactCollapsed(!contactCollapsed));
 $('historyCollapseBtn').addEventListener('click',()=>setHistoryCollapsed(!historyCollapsed));
 $('homeworkEntryCollapseBtn').addEventListener('click',()=>{
