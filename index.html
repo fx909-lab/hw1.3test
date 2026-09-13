@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>作業點名簿＋ v2.0 ReturnSlip55｜類別滾輪與回條設定整理版</title>
+<title>作業點名簿＋ v2.0 History01｜歷史批次刪除版</title>
 <style>
 :root{--bg:#f4f6f8;--card:#fff;--line:#dfe5ea;--text:#2f3b46;--muted:#8794a1;--blue:#4da3ff;--red:#ef5350;--yellow:#f6c945;--green:#59bf76;--orange:#f79a49}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif}
@@ -202,6 +202,14 @@ linear-gradient(to top right,transparent 49%,var(--line) 49.5%,var(--line) 50.5%
 }
 .history-delete-actions{display:flex;gap:7px;margin-left:auto}
 .history-delete-confirm .btn{padding:6px 9px;font-size:12px}
+.history-section-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.history-batch-toolbar{display:none;align-items:center;gap:8px;flex-wrap:wrap;margin:8px 0 10px;padding:8px 10px;border:1px solid #efcaca;border-radius:10px;background:#fff9f8}
+.history-batch-toolbar.show{display:flex}
+.history-batch-count{font-size:12px;font-weight:800;color:#8d3d35;margin-right:auto}
+.history-batch-check{display:inline-flex;align-items:center;justify-content:center;margin:0 0 5px;cursor:pointer}
+.history-batch-check input{width:17px;height:17px;margin:0;accent-color:#b44b43;cursor:pointer}
+.history-batch-selected{background:#fff2f0!important;box-shadow:inset 0 0 0 2px rgba(180,75,67,.22)}
+@media(max-width:760px){.history-section-actions{gap:5px}.history-batch-toolbar{padding:7px 8px;gap:6px}}
 
 .history-progress-box{container-type:inline-size;min-width:0}
 .cell-mark.partial-resolved::after{
@@ -1296,6 +1304,7 @@ body:not(.return-slip-mode) #dailySummary .current-status-heading .small{font-si
 
 <style id="returnslip54-overview-column-css">
 /* ReturnSlip55：類別欄在沒有可捲內容／已到邊界時允許滾輪繼續帶動頁面；回條類別隱藏總覽勾選。 */
+/* History01：歷史紀錄加入交易式批次刪除；先選取、再二次確認，確定後才永久刪除並重新計算。 */
 /* ReturnSlip54：總覽固定欄寬。既然總覽本來就可左右捲動，就不再為了塞滿畫面壓縮各欄。 */
 #overviewPanel .overview-table th:not(.seat-col),
 #overviewPanel .overview-table td:not(.seat-col){
@@ -1338,7 +1347,7 @@ body:not(.return-slip-mode) #dailySummary .current-status-heading .small{font-si
 </style>
 </head>
 <body>
-<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 ReturnSlip55</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
+<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 History01</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
 <div id="sandboxNotice" style="margin:10px auto 0;max-width:1180px;padding:8px 12px;border:1px solid #d5a72c;border-radius:10px;background:#fff8dc;color:#6b5314;font-size:13px;font-weight:700;box-sizing:border-box">🧪 r8 Sandbox 測試資料隔離模式｜不讀寫正式版 localStorage／Firestore 文件</div>
 <section id="cloudPanel" class="cloud-panel" aria-hidden="true">
   <div class="cloud-panel-head">
@@ -1508,9 +1517,10 @@ body:not(.return-slip-mode) #dailySummary .current-status-heading .small{font-si
 <section id="historySection" class="card section">
   <div class="history-section-head">
     <div class="section-title" style="margin-bottom:0">歷史紀錄</div>
-    <button id="historyCollapseBtn" class="btn history-collapse-btn" type="button" aria-expanded="true">收起 ▲</button>
+    <div class="history-section-actions"><button id="historyBatchDeleteBtn" class="btn danger" type="button">批次刪除</button><button id="historyCollapseBtn" class="btn history-collapse-btn" type="button" aria-expanded="true">收起 ▲</button></div>
   </div>
   <div id="historyBody">
+    <div id="historyBatchToolbar" class="history-batch-toolbar" aria-hidden="true"><span id="historyBatchCount" class="history-batch-count">已選 0 筆</span><button id="historyBatchSelectAllBtn" class="btn" type="button">全選目前類別</button><button id="historyBatchCancelBtn" class="btn" type="button">取消</button><button id="historyBatchConfirmBtn" class="btn danger" type="button" disabled>刪除已選紀錄</button></div>
     <div id="historyUsageHint" class="small" style="margin:8px 0">按「編輯紀錄」會把該筆資料載入上方一般登記區，可用原本三種進度輸入方式與座號狀態按鈕修改；「補登 OK」則直接在歷史紀錄中批次處理。左右滑動時座號欄固定。</div>
     <div class="history-table-wrap"><div class="history-table-scroll"><table class="history-table"><thead id="tableHead"></thead><tbody id="tableBody"></tbody></table></div></div>
   </div>
@@ -3454,8 +3464,33 @@ function saveHistoryRecordFromMain(duplicateConfirmed=false){
  selectedStudents.clear();currentReturnSlipLabels={...RETURN_SLIP_DEFAULT_LABELS};currentReturnSlipMerge={enabled:false,label:'參加總計'};progress={a:'',b:'',skipPages:'',unit:'L',unitNums:'',unitDetail:'',free:''};
  renderAll();
 }
+let historyBatchDeleteMode=false;
+const historyBatchDeleteIds=new Set();
+function historyBatchCurrentIds(){const c=currentCat();return state.history.filter(h=>h.catId===c.id).map(h=>String(h.id));}
+function updateHistoryBatchToolbar(){
+ const bar=$('historyBatchToolbar'),count=$('historyBatchCount'),confirmBtn=$('historyBatchConfirmBtn'),toggle=$('historyBatchDeleteBtn');
+ if(bar){bar.classList.toggle('show',historyBatchDeleteMode);bar.setAttribute('aria-hidden',historyBatchDeleteMode?'false':'true')}
+ if(count)count.textContent=`已選 ${historyBatchDeleteIds.size} 筆`;if(confirmBtn)confirmBtn.disabled=historyBatchDeleteIds.size===0;if(toggle)toggle.textContent=historyBatchDeleteMode?'離開批次刪除':'批次刪除';
+}
+function cancelHistoryBatchDelete(render=true){historyBatchDeleteMode=false;historyBatchDeleteIds.clear();const box=$('historyBatchDeleteConfirm');if(box)box.remove();updateHistoryBatchToolbar();if(render)renderTable();}
+function toggleHistoryBatchDeleteMode(){if(historyBatchDeleteMode){cancelHistoryBatchDelete();return}if(historyEditId||historyOkEditId){alert('請先完成或取消目前的歷史編輯／補登 OK，再進行批次刪除。');return}historyBatchDeleteMode=true;historyBatchDeleteIds.clear();updateHistoryBatchToolbar();renderTable();}
+function toggleHistoryBatchId(id){id=String(id||'');if(!SAFE_ID.test(id)||!historyBatchDeleteMode)return;if(historyBatchDeleteIds.has(id))historyBatchDeleteIds.delete(id);else historyBatchDeleteIds.add(id);updateHistoryBatchToolbar();renderTable();}
+function selectAllHistoryBatch(){if(!historyBatchDeleteMode)return;const ids=historyBatchCurrentIds();const all=ids.length>0&&ids.every(id=>historyBatchDeleteIds.has(id));historyBatchDeleteIds.clear();if(!all)ids.forEach(id=>historyBatchDeleteIds.add(id));updateHistoryBatchToolbar();renderTable();}
+function showHistoryBatchDeleteConfirm(){
+ if(!historyBatchDeleteMode||historyBatchDeleteIds.size===0)return;const existing=$('historyBatchDeleteConfirm');if(existing)existing.remove();const count=historyBatchDeleteIds.size;
+ const box=document.createElement('div');box.id='historyBatchDeleteConfirm';box.className='history-delete-confirm';const msg=document.createElement('span');msg.textContent=`即將永久刪除 ${count} 筆歷史紀錄。刪除後無法復原，確定繼續嗎？`;
+ const actions=document.createElement('span');actions.className='history-delete-actions';const cancel=document.createElement('button');cancel.type='button';cancel.className='btn';cancel.textContent='取消';cancel.addEventListener('click',()=>box.remove());const ok=document.createElement('button');ok.type='button';ok.className='btn danger';ok.textContent=`永久刪除 ${count} 筆`;ok.addEventListener('click',commitHistoryBatchDelete);actions.append(cancel,ok);box.append(msg,actions);
+ const wrap=document.querySelector('.history-table-wrap');if(wrap)wrap.parentNode.insertBefore(box,wrap);else $('tableHead').parentElement.before(box);box.scrollIntoView({block:'nearest',behavior:'smooth'});
+}
+function commitHistoryBatchDelete(){
+ const ids=new Set([...historyBatchDeleteIds].filter(id=>SAFE_ID.test(id)));if(!ids.size)return;const affected=new Set(state.history.filter(h=>ids.has(String(h.id))).map(h=>h.catId));state.history=state.history.filter(h=>!ids.has(String(h.id)));
+ if(historyEditId&&ids.has(historyEditId))cancelHistoryRecordEdit(false);if(historyOkEditId&&ids.has(historyOkEditId)){historyOkEditId='';historyOkPending.clear();}if(independentSummaryViewId&&ids.has(independentSummaryViewId))independentSummaryViewId='';
+ for(const catId of affected){const cat=state.categories.find(c=>c.id===catId);if(cat?.kind==='continuous')recomputeContinuousResolutions(catId)}
+ historyBatchDeleteMode=false;historyBatchDeleteIds.clear();const box=$('historyBatchDeleteConfirm');if(box)box.remove();save();renderAll();updateHistoryBatchToolbar();
+}
 function renderTable(){
  const c=currentCat(),cols=state.history.filter(h=>h.catId===c.id).sort(compareHistory);
+ if(historyBatchDeleteMode){const valid=new Set(cols.map(h=>String(h.id)));for(const id of [...historyBatchDeleteIds])if(!valid.has(id))historyBatchDeleteIds.delete(id);}
  const headRow=document.createElement('tr');
  const corner=document.createElement('th');corner.className='diag-head';
  const prog=document.createElement('span');prog.className='diag-progress';prog.textContent='進度';
@@ -3463,6 +3498,7 @@ function renderTable(){
  corner.append(prog,seat);headRow.appendChild(corner);
  cols.forEach((h,i)=>{
    const th=document.createElement('th');if(i===0)th.className='latest-col';
+   if(historyBatchDeleteMode){const pick=document.createElement('label');pick.className='history-batch-check';pick.title='選取這筆歷史紀錄';const cb=document.createElement('input');cb.type='checkbox';cb.checked=historyBatchDeleteIds.has(String(h.id));cb.addEventListener('click',e=>{e.stopPropagation();toggleHistoryBatchId(h.id)});pick.addEventListener('click',e=>e.stopPropagation());pick.appendChild(cb);th.appendChild(pick);if(cb.checked)th.classList.add('history-batch-selected')}
    const progressDiv=document.createElement('div');progressDiv.className='history-progress-box';progressDiv.innerHTML=progressHTML(h);
    const dateDiv=document.createElement('div');dateDiv.textContent=h.date;
    if(c.kind==='independent'){
@@ -3484,7 +3520,7 @@ function renderTable(){
    recordEdit.style.cssText='padding:4px 7px;font-size:11px';
    recordEdit.textContent=historyEditId===h.id?'取消編輯':'編輯紀錄';
    recordEdit.title=historyEditId===h.id?'取消這次尚未儲存的歷史修改':'把這筆歷史資料載入上方一般登記區修改';
-   recordEdit.disabled=false;
+   recordEdit.disabled=historyBatchDeleteMode;
    recordEdit.addEventListener('click',()=>{if(historyEditId===h.id)cancelHistoryRecordEdit();else startHistoryRecordEdit(h.id)});
    controls.appendChild(recordEdit);
    if(!isReturnSlipCategory(c)){
@@ -3509,7 +3545,7 @@ function renderTable(){
        okEdit.style.cssText='padding:4px 7px;font-size:11px';
        okEdit.textContent='補登 OK';
        okEdit.title='進入補登模式，可一次點選多個座號，再按確定儲存；按取消則不記錄';
-       okEdit.disabled=!!historyEditId||!!historyOkEditId;
+       okEdit.disabled=historyBatchDeleteMode||!!historyEditId||!!historyOkEditId;
        okEdit.addEventListener('click',()=>toggleHistoryOkEdit(h.id));
        controls.appendChild(okEdit);
      }
@@ -3518,6 +3554,7 @@ function renderTable(){
    del.type='button';del.className='btn danger history-delete-btn';
    del.style.cssText='padding:4px 7px;font-size:11px';
    del.textContent='刪除此筆';
+   del.disabled=historyBatchDeleteMode;
    del.addEventListener('click',()=>showHistoryDeleteConfirm(h));
    controls.appendChild(del);
    if(c.kind==='independent')th.appendChild(controls);else th.append(progressDiv,dateDiv,controls);headRow.appendChild(th);
@@ -3546,6 +3583,7 @@ function renderTable(){
    rows+=`<tr><td>${n}</td>${cells}</tr>`;
  }
  $('tableBody').innerHTML=rows;
+ updateHistoryBatchToolbar();
  $('tableBody').querySelectorAll('td.ok-editable').forEach(td=>{
    td.addEventListener('click',()=>{
      const id=String(td.dataset.historyId||''),seat=Number(td.dataset.seat);
@@ -3729,6 +3767,10 @@ window.addEventListener('resize',()=>{syncMobileUXClass();setupMobileTopbar();up
 window.addEventListener('orientationchange',()=>setTimeout(()=>{syncMobileUXClass();setupMobileTopbar();updateMobileCategoryUI();updateOverviewStickyMetrics()},80));
 window.visualViewport?.addEventListener('resize',()=>requestAnimationFrame(updateOverviewStickyMetrics));
 $('contactCollapseBtn').addEventListener('click',()=>setContactCollapsed(!contactCollapsed));
+$('historyBatchDeleteBtn').addEventListener('click',toggleHistoryBatchDeleteMode);
+$('historyBatchSelectAllBtn').addEventListener('click',selectAllHistoryBatch);
+$('historyBatchCancelBtn').addEventListener('click',()=>cancelHistoryBatchDelete());
+$('historyBatchConfirmBtn').addEventListener('click',showHistoryBatchDeleteConfirm);
 $('historyCollapseBtn').addEventListener('click',()=>setHistoryCollapsed(!historyCollapsed));
 $('homeworkEntryCollapseBtn').addEventListener('click',()=>{
  const body=$('homeworkEntryBody'),btn=$('homeworkEntryCollapseBtn');
