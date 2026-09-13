@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>作業點名簿＋ v2.0 ReturnSlip45｜回條編輯與合計計算版</title>
+<title>作業點名簿＋ v2.0 ReturnSlip46｜回條編輯與合計計算版</title>
 <style>
 :root{--bg:#f4f6f8;--card:#fff;--line:#dfe5ea;--text:#2f3b46;--muted:#8794a1;--blue:#4da3ff;--red:#ef5350;--yellow:#f6c945;--green:#59bf76;--orange:#f79a49}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif}
@@ -1198,12 +1198,12 @@ body.return-slip-mode #homeworkStatusbar{outline:1px solid rgba(184,139,55,.12);
   }
 }
 
-/* ReturnSlip45：沿用 R41 已確認的登記日期標籤位置。 */
+/* ReturnSlip46：沿用 R41 已確認的登記日期標籤位置。 */
 .homework-entry-progress>.field:has(#recordDate)>label{
   transform:translateY(4px);
 }
 
-/* ReturnSlip45：每筆回條的結果文字改在作業登記區直接設定。 */
+/* ReturnSlip46：每筆回條文字編輯壓縮版面；回條摘要順序與上方狀態列一致。 */
 .return-slip-record-label-editor{margin-top:10px;padding:10px 12px;border:1px solid rgba(77,163,255,.28);border-radius:12px;background:rgba(77,163,255,.055);display:grid;gap:9px}
 .return-slip-record-label-editor[hidden]{display:none!important}
 .return-slip-record-label-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;color:#49657d}
@@ -1211,28 +1211,31 @@ body.return-slip-mode #homeworkStatusbar{outline:1px solid rgba(184,139,55,.12);
 .return-slip-record-label-item{display:flex;align-items:center;gap:5px;min-width:0}
 .return-slip-record-label-item .input{width:108px;height:34px;padding:5px 8px;font-size:13px}
 .return-slip-edit-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;width:100%}
-.return-slip-edit-controls .return-slip-status-select{width:auto;min-width:74px;height:38px}
-.return-slip-edit-controls .return-slip-label-input{flex:1 1 180px;min-width:150px;height:38px}
+.return-slip-edit-controls .return-slip-status-select{width:58px;min-width:58px;height:36px;padding:4px 6px;text-align:center}
+.return-slip-edit-controls .return-slip-label-input{width:190px;flex:0 1 190px;min-width:120px;height:36px}
 .return-slip-edit-controls .btn{white-space:nowrap}
-.return-slip-fixed-note{display:flex;align-items:center;gap:10px;flex-wrap:wrap;color:var(--muted);font-size:12px}
 .return-slip-merge-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;width:100%;padding-top:2px}
 .return-slip-merge-row label{display:flex;align-items:center;gap:5px;white-space:nowrap}
 .return-slip-merge-row .input{width:138px;height:36px}
+.slip-summary-line{align-items:flex-start}
+.slip-summary-line .summary-text{min-width:0;line-height:1.55}
+.slip-summary-line .summary-seats{font-weight:400}
+.slip-summary-total{padding-left:27px}
 body.return-slip-mode .progress-pages-label,body.return-slip-mode .progress-mode-btn[data-mode="pages"],body.return-slip-mode .progress-mode-group[data-progress-mode="pages"]{display:none!important}
 @media(max-width:700px){
  .return-slip-record-label-editor{padding:9px 10px}
  .return-slip-record-label-grid{display:flex;gap:7px 8px}
  .return-slip-record-label-item .input{width:100%;min-width:0}
  .return-slip-edit-controls{gap:6px}
- .return-slip-edit-controls .return-slip-status-select{min-width:70px}
- .return-slip-edit-controls .return-slip-label-input{flex-basis:130px;min-width:110px}
+ .return-slip-edit-controls .return-slip-status-select{width:54px;min-width:54px}
+ .return-slip-edit-controls .return-slip-label-input{width:148px;flex:1 1 148px;min-width:105px}
  .return-slip-edit-controls .btn{padding-left:9px;padding-right:9px}
  .return-slip-merge-row .input{width:120px;flex:1 1 110px}
 }
 </style>
 </head>
 <body>
-<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 ReturnSlip45</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
+<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 ReturnSlip46</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
 <div id="sandboxNotice" style="margin:10px auto 0;max-width:1180px;padding:8px 12px;border:1px solid #d5a72c;border-radius:10px;background:#fff8dc;color:#6b5314;font-size:13px;font-weight:700;box-sizing:border-box">🧪 r8 Sandbox 測試資料隔離模式｜不讀寫正式版 localStorage／Firestore 文件</div>
 <section id="cloudPanel" class="cloud-panel" aria-hidden="true">
   <div class="cloud-panel-head">
@@ -1377,7 +1380,7 @@ body.return-slip-mode .progress-pages-label,body.return-slip-mode .progress-mode
   <div class="small">可一次選多個座號，再點狀態；套用後會自動取消選取。</div>
   <div id="historyMainEditBanner" class="history-main-edit-banner" aria-hidden="true"></div>
   <div id="returnSlipRecordLabelEditor" class="return-slip-record-label-editor" hidden>
-    <div class="return-slip-record-label-head"><b>回條結果文字</b><span class="small">藍、黃、綠、橘可依每一筆回條修改；未交與補繳固定，不提供改名。</span></div>
+    <div class="return-slip-record-label-head"><b>回條結果文字</b><span class="small">藍、黃、綠、橘可依每一筆回條修改。</span></div>
     <div id="returnSlipRecordLabelGrid" class="return-slip-record-label-grid"></div>
   </div>
   <div id="homeworkStatusbar" class="statusbar" style="margin-top:10px"><button class="status-btn homework-status-btn active" type="button" data-status="blue"><span class="dot blue"></span>通過</button><button class="status-btn homework-status-btn" type="button" data-status="red"><span class="dot red"></span>未交／未寫</button><button class="status-btn homework-status-btn" type="button" data-status="green"><span class="dot green"></span>未簽</button><button class="status-btn homework-status-btn" type="button" data-status="ring"><span class="dot ring"></span>未訂簽</button><button class="status-btn homework-status-btn" type="button" data-status="yellow"><span class="dot yellow"></span>未訂正</button><button class="status-btn homework-status-btn" type="button" data-status="orange"><span class="dot orange"></span>請假</button></div>
@@ -1729,7 +1732,7 @@ function compareHistory(a,b){
  return bc-ac||bi-ai;
 }
 function latestRecord(catId){return state.history.filter(h=>h.catId===catId).sort(compareHistory)[0]||null}
-function recordHasPending(h){if(!h)return false;if(isReturnSlipCategory(h.catId)){for(let n=1;n<=state.studentCount;n++)if(isReturnSlipPendingStatus(h.statuses?.[n]||'red'))return true;return false}for(let n=1;n<=state.studentCount;n++){const st=h.statuses[n];if(['red','yellow','green','ring'].includes(st)&&!h.resolved?.[n])return true}return false}
+function recordHasPending(h){if(!h)return false;if(isReturnSlipCategory(h.catId)){for(let n=1;n<=state.studentCount;n++)if(isReturnSlipPendingStatus(h.statuses?.[n]||'red'))return true;return false}for(let n=1;n<=state.studentCount;n++){const st=h.statuses[n];if(['red','yellow','green','ring','orange'].includes(st)&&!h.resolved?.[n])return true}return false}
 function fmtDate(d){if(!d)return'';const[,m,day]=d.split('-');return`${Number(m)}/${Number(day)}`}
 
 const MOBILE_UX_MAX=600;
@@ -1790,8 +1793,9 @@ function renderReturnSlipRecordLabelEditor(){
 
  const controls=document.createElement('div');controls.className='return-slip-edit-controls';
  const select=document.createElement('select');select.className='input return-slip-status-select';select.setAttribute('aria-label','選擇要修改的回條結果');
+ const selectorMarks={blue:'🔵',yellow:'🟡',green:'🟢',orange:'🟠'};
  for(const st of ['blue','yellow','green','orange']){
-   const op=document.createElement('option');op.value=st;op.textContent=RETURN_SLIP_DEFAULT_LABELS[st];select.appendChild(op);
+   const op=document.createElement('option');op.value=st;op.textContent=selectorMarks[st];op.title=RETURN_SLIP_DEFAULT_LABELS[st];select.appendChild(op);
  }
  select.value=returnSlipEditorStatus;
  const input=document.createElement('input');input.type='text';input.maxLength=40;input.className='input return-slip-label-input';
@@ -1806,9 +1810,6 @@ function renderReturnSlipRecordLabelEditor(){
  restoreAllBtn.addEventListener('click',()=>{currentReturnSlipLabels={...RETURN_SLIP_DEFAULT_LABELS};syncInput();refreshReturnSlipStatusButtons()});
  controls.append(select,input,confirmBtn,cancelBtn,restoreBtn,restoreAllBtn);grid.appendChild(controls);
 
- const fixed=document.createElement('div');fixed.className='return-slip-fixed-note';
- fixed.innerHTML='<span><span class="dot red"></span>未交（固定）</span><span><span class="dot ring"></span>補繳（固定）</span>';
- grid.appendChild(fixed);
 
  const merge=document.createElement('div');merge.className='return-slip-merge-row';
  const mergeLabel=document.createElement('label');const check=document.createElement('input');check.type='checkbox';check.checked=currentReturnSlipMerge.enabled;
@@ -2287,7 +2288,7 @@ function renderProgress(){
  setMobileProgressMode(initialMode,false);
 }
 $('categoryEditBtn').addEventListener('click',toggleCategoryManager);
-document.querySelectorAll('.homework-status-btn').forEach(btn=>btn.addEventListener('click',()=>{selectedStatus=btn.dataset.status;document.querySelectorAll('.homework-status-btn').forEach(b=>b.classList.toggle('active',b===btn));if(selectedStudents.size)applyStatusToSelected()}));
+document.querySelectorAll('.homework-status-btn').forEach(btn=>btn.addEventListener('click',()=>{selectedStatus=btn.dataset.status;document.querySelectorAll('.homework-status-btn').forEach(b=>b.classList.toggle('active',b===btn));if(isReturnSlipCategory(currentCat())&&['blue','yellow','green','orange'].includes(selectedStatus)){returnSlipEditorStatus=selectedStatus;renderReturnSlipRecordLabelEditor()}if(selectedStudents.size)applyStatusToSelected()}));
 function todayLeaveSet(){return new Set(state.contact.date===TODAY?state.contact.leave:[])}
 function renderStudentGrid(){
  const d=getDraft(),leave=todayLeaveSet(),isToday=($('recordDate').value||TODAY)===TODAY,grid=$('studentGrid');
@@ -2548,12 +2549,13 @@ let independentSummaryViewId='';
 function renderSummary(rec){
  const groups=summaryStatusGroups(rec),c=state.categories.find(x=>x.id===rec?.catId)||currentCat(),slip=isReturnSlipCategory(c);
  const labels=slip?Object.fromEntries(Object.keys(RETURN_SLIP_DEFAULT_LABELS).map(st=>[st,[getReturnSlipRecordLabel(st,rec,c),st]])):{orange:['請假','orange'],red:['未交／未寫','red'],green:['未簽','green'],ring:['未訂簽','ring'],yellow:['未訂正','yellow']};
- let lines=Object.entries(groups).filter(([,v])=>v.length).map(([k,v])=>slip
-   ?`<div class="summary-line"><span class="dot ${labels[k][1]}"></span><b>${esc(labels[k][0])}：${v.length} 人｜</b>${v.map(n=>String(n).padStart(2,'0')).join('、')}</div>`
+ const slipOrder=['blue','yellow','green','orange','red','ring'];
+ let lines=(slip?slipOrder.map(k=>[k,groups[k]||[]]):Object.entries(groups)).filter(([,v])=>v.length).map(([k,v])=>slip
+   ?`<div class="summary-line slip-summary-line"><span class="dot ${labels[k][1]}"></span><span class="summary-text"><b>${esc(labels[k][0])}：${v.length} 人</b><span class="summary-seats">｜${v.map(n=>String(n).padStart(2,'0')).join('、')}</span></span></div>`
    :`<div class="summary-line"><span class="dot ${labels[k][1]}"></span><b>${esc(labels[k][0])}：</b>${v.join('、')}</div>`).join('');
  if(slip){
    const merge=getReturnSlipRecordMerge(rec);
-   if(merge.enabled){const seats=[...(groups.blue||[]),...(groups.yellow||[])].sort((a,b)=>a-b);lines+=`<div class="summary-line"><b>${esc(merge.label)}：${seats.length} 人｜</b>${seats.map(n=>String(n).padStart(2,'0')).join('、')||'—'}</div>`}
+   if(merge.enabled){const seats=[...(groups.blue||[]),...(groups.yellow||[])].sort((a,b)=>a-b);lines+=`<div class="summary-line slip-summary-total"><b>${esc(merge.label)}：${seats.length} 人</b></div>`}
  }
  const tail=slip?(isReturnSlipRecordComplete(rec)?'<div class="small" style="margin-top:7px">✓ 此筆回條已全部完成。</div>':'<div class="small" style="margin-top:7px">仍有未交／補繳者，此筆尚未全部完成。</div>'):'';
  $('dailySummary').innerHTML=`<div class="current-status-heading"><h4 style="margin:0">${esc(c.name)}｜${rec.content?esc(rec.content)+'｜':''}${rec.date}</h4><span class="small">目前繳交情況</span></div>${lines||'<div class="small" style="margin-top:6px">目前沒有需要追蹤的狀態。</div>'}${tail}`;
@@ -2602,7 +2604,7 @@ function hasUnresolvedIndependentRecord(h){
  if(!h)return false;
  for(let n=1;n<=state.studentCount;n++){
    const st=h.statuses?.[n];
-   if(['red','yellow','green','ring'].includes(st)&&!isStatusFullyResolved(h,n))return true;
+   if(['red','yellow','green','ring','orange'].includes(st)&&!isStatusFullyResolved(h,n))return true;
  }
  return false;
 }
@@ -2639,7 +2641,7 @@ function independentWorkTags(catId){
  return `<div class="overview-work-tags">${tags.join('')}</div>`;
 }
 function independentPendingCounts(catId,seat){
- const counts={red:0,green:0,ring:0,yellow:0};
+ const counts={red:0,green:0,ring:0,yellow:0,orange:0};
  for(const h of state.history){
    if(h.catId!==catId)continue;
    const st=h.statuses?.[seat];
@@ -2651,8 +2653,8 @@ function independentPendingCounts(catId,seat){
 }
 function independentOverviewCell(catId,seat){
  const counts=independentPendingCounts(catId,seat);
- const order=['red','green','ring','yellow'];
- const labels={red:'未交／未寫',green:'未簽',ring:'未訂簽',yellow:'未訂正'};
+ const order=['red','green','ring','yellow','orange'];
+ const labels={red:'未交／未寫',green:'未簽',ring:'未訂簽',yellow:'未訂正',orange:'請假'};
  const parts=order.filter(st=>counts[st]>0).map(st=>
    `<span class="overview-debt" title="${labels[st]} ${counts[st]} 筆"><span class="cell-mark ${st}"></span><span class="overview-debt-count">${counts[st]}</span></span>`
  );
@@ -2684,14 +2686,14 @@ function statusText(st,h=null,seat=null){
 function studentQuickOkButton(h,seat){
  if(!h||!Number.isInteger(Number(seat))||isReturnSlipCategory(h.catId))return '';
  const st=h.statuses?.[seat]||'red';
- if(!['red','yellow','green','ring'].includes(st)||isStatusFullyResolved(h,seat))return '';
+ if(!['red','yellow','green','ring','orange'].includes(st)||isStatusFullyResolved(h,seat))return '';
  return `<button type="button" class="btn student-quick-ok" data-history-id="${esc(h.id)}" data-seat="${Number(seat)}">補登 OK</button>`;
 }
 function quickResolveStudentHistory(historyId,seat){
  const h=state.history.find(x=>x.id===historyId);seat=Number(seat);
  if(!h||!Number.isInteger(seat)||seat<1||seat>state.studentCount)return;
  const st=h.statuses?.[seat];
- if(!['red','yellow','green','ring'].includes(st)||isStatusFullyResolved(h,seat))return;
+ if(!['red','yellow','green','ring','orange'].includes(st)||isStatusFullyResolved(h,seat))return;
  h.manualResolved||={};h.manualResolved[seat]=true;
  h.resolved||={};h.resolvedParts||={};h.resolved[seat]=true;h.resolvedParts[seat]={missing:true,correction:true,signature:true};
  h.updated=nextUpdatedStamp();
@@ -2706,8 +2708,8 @@ function studentRecordIsPending(h,seat){
  if(!h)return false;
  const st=h.statuses?.[seat]||'red';
  if(isReturnSlipCategory(h.catId))return isReturnSlipPendingStatus(st);
- // 與既有「待處理」判斷一致：一般作業請假不視為欠件；已補登 OK 也不再列為待處理。
- return ['red','yellow','green','ring'].includes(st)&&!isStatusFullyResolved(h,seat);
+ // 一般作業的請假仍代表尚待補作業；補登 OK 後才離開待處理。
+ return ['red','yellow','green','ring','orange'].includes(st)&&!isStatusFullyResolved(h,seat);
 }
 function categoryPendingForStudent(c,seat){
  if(c.kind==='continuous')return studentRecordIsPending(latestRecord(c.id),seat);
@@ -3293,7 +3295,7 @@ function renderTable(){
        renderSummary(h);renderTable();
        $('dailySummary')?.scrollIntoView({behavior:'smooth',block:'nearest'});
      });
-     th.append(progressDiv,dateDiv,viewHint);
+     if(isReturnSlipCategory(c))th.append(progressDiv,dateDiv);else th.append(progressDiv,dateDiv,viewHint);
    }
    const controls=document.createElement('div');controls.className='history-record-controls';controls.style.cssText='display:flex;gap:4px;justify-content:center;flex-wrap:nowrap;margin-top:5px;white-space:nowrap';
    const recordEdit=document.createElement('button');
@@ -3352,7 +3354,7 @@ function renderTable(){
    });
  });
 }
-// ReturnSlip45：回條顯示文字改由每一筆登記區直接設定；歷史／個人／摘要／匯出均讀取該筆快照。
+// ReturnSlip46：回條顯示文字維持每筆獨立；摘要順序／版面調整，並讓一般作業請假納入待補與補登 OK。
 // 不承接舊回條文字／舊狀態碼；資料判定固定使用目前六種內部狀態碼。
 function showHistoryDeleteConfirm(h){
  const existing=$('historyDeleteConfirm');
