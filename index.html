@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>作業點名簿＋ v2.0 ReturnSlip47｜回條摘要與補登確認版</title>
+<title>作業點名簿＋ v2.0 ReturnSlip48｜字體位置修正版</title>
 <style>
 :root{--bg:#f4f6f8;--card:#fff;--line:#dfe5ea;--text:#2f3b46;--muted:#8794a1;--blue:#4da3ff;--red:#ef5350;--yellow:#f6c945;--green:#59bf76;--orange:#f79a49}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif}
@@ -1224,6 +1224,10 @@ body.return-slip-mode #homeworkStatusbar{outline:1px solid rgba(184,139,55,.12);
 .slip-summary-line .summary-seats{display:grid;grid-template-columns:auto minmax(0,1fr);min-width:0;font-weight:400}
 .slip-summary-line .summary-seat-list{display:block;min-width:0;overflow-wrap:normal;word-break:normal}
 .slip-summary-total{padding:9px 0 0 27px;margin-top:9px;border-top:1px dashed rgba(120,104,72,.35)}
+/* ReturnSlip48：放大的應是歷史紀錄中的回條名稱；目前繳交情形恢復較精簡字級。 */
+body.return-slip-mode #dailySummary .current-status-heading h4{font-size:16px;line-height:1.35}
+body.return-slip-mode #dailySummary .slip-summary-line,body.return-slip-mode #dailySummary .slip-summary-total{font-size:14px}
+body.return-slip-mode .history-table .history-progress-box .progress-cell{font-size:12px;font-weight:800;line-height:1.25}
 body.return-slip-mode .progress-pages-label,body.return-slip-mode .progress-mode-btn[data-mode="pages"],body.return-slip-mode .progress-mode-group[data-progress-mode="pages"]{display:none!important}
 @media(max-width:700px){
  .return-slip-record-label-editor{padding:9px 10px}
@@ -1238,7 +1242,7 @@ body.return-slip-mode .progress-pages-label,body.return-slip-mode .progress-mode
 </style>
 </head>
 <body>
-<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 ReturnSlip47</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
+<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 ReturnSlip48</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
 <div id="sandboxNotice" style="margin:10px auto 0;max-width:1180px;padding:8px 12px;border:1px solid #d5a72c;border-radius:10px;background:#fff8dc;color:#6b5314;font-size:13px;font-weight:700;box-sizing:border-box">🧪 r8 Sandbox 測試資料隔離模式｜不讀寫正式版 localStorage／Firestore 文件</div>
 <section id="cloudPanel" class="cloud-panel" aria-hidden="true">
   <div class="cloud-panel-head">
