@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>作業點名簿＋ v2.0 ReturnSlip48｜字體位置修正版</title>
+<title>作業點名簿＋ v2.0 ReturnSlip50｜重名提示與區塊內距整理版</title>
 <style>
 :root{--bg:#f4f6f8;--card:#fff;--line:#dfe5ea;--text:#2f3b46;--muted:#8794a1;--blue:#4da3ff;--red:#ef5350;--yellow:#f6c945;--green:#59bf76;--orange:#f79a49}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif}
@@ -37,7 +37,7 @@ button,input{font:inherit}button{cursor:pointer}.topbar{background:#fff;border-b
 @media(max-width:980px){.main{grid-template-columns:210px minmax(0,1fr)}}
 @media(max-width:760px){.main{grid-template-columns:1fr;padding:8px}.sidebar{position:static}.cat-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.grid{grid-template-columns:repeat(auto-fill,46px);gap:8px}.num{width:46px;height:46px}.field.grow{flex:1 1 100%}.statusbar{position:sticky;top:0;background:#fff;padding:8px 0;z-index:10}}
 
-.overview-panel{display:none;margin:12px 16px 0}
+.overview-panel{display:none;margin:12px 16px 0;padding:14px 16px}
 .overview-panel.show{display:block}
 .overview-headline{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
 .overview-table-wrap{overflow:auto;max-width:100%;border:1px solid var(--line);border-radius:10px}
@@ -52,7 +52,7 @@ button,input{font:inherit}button{cursor:pointer}.topbar{background:#fff;border-b
 .overview-table .date-head{font-size:10px;color:var(--muted);font-weight:600}
 .overview-table .cell-mark{width:18px;height:18px}
 .overview-table .cell-mark.resolved::after{font-size:7px;line-height:9px;padding:0 1px;border-width:1px}
-@media(max-width:700px){.overview-panel{margin:8px 8px 0}.overview-table th,.overview-table td{min-width:34px;height:28px;padding:1px 3px}.overview-table .cat-head{min-width:40px;max-width:56px;font-size:11px}.overview-table .seat-col{min-width:38px}}
+@media(max-width:700px){.overview-panel{margin:8px 8px 0;padding:11px 12px}.overview-table th,.overview-table td{min-width:34px;height:28px;padding:1px 3px}.overview-table .cat-head{min-width:40px;max-width:56px;font-size:11px}.overview-table .seat-col{min-width:38px}}
 
 .all-ok-cell{padding:0!important;vertical-align:middle!important;background:rgba(248,250,252,.55)}
 .all-ok-stamp{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:22px;padding:0 5px;border:1.5px solid #8aa79a;border-radius:5px;color:#6f9181;font-size:11px;font-weight:900;letter-spacing:.5px;transform:rotate(-5deg);opacity:.72;background:rgba(255,255,255,.75)}
@@ -310,7 +310,7 @@ button.overview-work-tag:focus-visible{outline:2px solid #2f80ed;outline-offset:
 .record-choice-box .actions{display:flex;gap:7px;flex-wrap:wrap}
 @media(max-width:650px){.record-choice-box .actions{width:100%}.record-choice-box .actions .btn{flex:1 1 auto}}
 
-.student-panel{display:none;margin:12px 16px 0}
+.student-panel{display:none;margin:12px 16px 0;padding:14px 16px}
 .student-panel.show{display:block}
 .student-panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px}
 .student-seat-picker{display:flex;gap:7px;flex-wrap:wrap;margin:8px 0 12px}
@@ -331,7 +331,7 @@ button.overview-work-tag:focus-visible{outline:2px solid #2f80ed;outline-offset:
 .current-status-heading .small{font-weight:600}
 .overview-actions{display:flex;gap:7px;flex-wrap:wrap}
 @media(max-width:700px){
- .student-panel{margin:8px}
+ .student-panel{margin:8px;padding:11px 12px}
  .student-seat-btn{min-width:38px;height:38px}
  .student-record-table{min-width:500px}
 }
@@ -1225,6 +1225,8 @@ body.return-slip-mode #homeworkStatusbar{outline:1px solid rgba(184,139,55,.12);
 .slip-summary-line .summary-seat-list{display:block;min-width:0;overflow-wrap:normal;word-break:normal}
 .slip-summary-total{padding:9px 0 0 27px;margin-top:9px;border-top:1px dashed rgba(120,104,72,.35)}
 /* ReturnSlip48：放大的應是歷史紀錄中的回條名稱；目前繳交情形恢復較精簡字級。 */
+/* ReturnSlip49：回條名稱重複時，新增與歷史編輯都先提示，避免同名紀錄難以辨識。 */
+/* ReturnSlip50：重名提示擴充到一般作業進度；主要展開面板補足標題、說明、按鈕與邊框的呼吸空間。 */
 body.return-slip-mode #dailySummary .current-status-heading h4{font-size:16px;line-height:1.35}
 body.return-slip-mode #dailySummary .slip-summary-line,body.return-slip-mode #dailySummary .slip-summary-total{font-size:14px}
 body.return-slip-mode .history-table .history-progress-box .progress-cell{font-size:12px;font-weight:800;line-height:1.25}
@@ -1242,7 +1244,7 @@ body.return-slip-mode .progress-pages-label,body.return-slip-mode .progress-mode
 </style>
 </head>
 <body>
-<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 ReturnSlip48</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
+<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 ReturnSlip50</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
 <div id="sandboxNotice" style="margin:10px auto 0;max-width:1180px;padding:8px 12px;border:1px solid #d5a72c;border-radius:10px;background:#fff8dc;color:#6b5314;font-size:13px;font-weight:700;box-sizing:border-box">🧪 r8 Sandbox 測試資料隔離模式｜不讀寫正式版 localStorage／Firestore 文件</div>
 <section id="cloudPanel" class="cloud-panel" aria-hidden="true">
   <div class="cloud-panel-head">
@@ -2519,6 +2521,24 @@ function showSameRecordChoice(c,date,content,progressType,d,idx){
  overwrite.addEventListener('click',()=>commitHomeworkRecord(c,date,content,progressType,d,'overwrite',idx));
  actions.append(cancel,keep,overwrite);box.append(msg,actions);summary.appendChild(box);
 }
+function showDuplicateProgressChoice(c,content,existing,onContinue,verb='新增'){
+ const summary=$('dailySummary');
+ summary.classList.remove('hidden');
+ summary.innerHTML='';
+ const box=document.createElement('div');box.className='record-choice-box';
+ const msg=document.createElement('div');
+ const existingDate=existing?.date?`（${esc(existing.date)}）`:'';
+ const slip=isReturnSlipCategory(c);
+ const noun=slip?'同名回條':'相同作業進度';
+ const detail=slip?'同一個回條類別中已經有這個名稱。':'同一個作業類別中已經有相同的作業進度。';
+ msg.innerHTML=`<b>已有${noun}「${esc(content)}」${existingDate}</b><div class="small" style="margin-top:3px">${detail} 為了避免之後在歷史紀錄中混淆，請確認是否仍要${esc(verb)}這筆紀錄。</div>`;
+ const actions=document.createElement('div');actions.className='actions';
+ const cancel=document.createElement('button');cancel.type='button';cancel.className='btn';cancel.textContent='取消';
+ const proceed=document.createElement('button');proceed.type='button';proceed.className='btn primary';proceed.textContent=`仍要${verb}`;
+ cancel.addEventListener('click',()=>{summary.classList.add('hidden');summary.innerHTML=''});
+ proceed.addEventListener('click',()=>{summary.classList.add('hidden');summary.innerHTML='';onContinue?.()});
+ actions.append(cancel,proceed);box.append(msg,actions);summary.appendChild(box);
+}
 function updateHomework(){
  if(historyEditId)return saveHistoryRecordFromMain();
  refreshToday();
@@ -2539,6 +2559,13 @@ function updateHomework(){
  // 由使用者選擇「覆蓋原紀錄」或「保留兩筆」。
  const idx=state.history.findIndex(h=>h.catId===c.id&&h.date===date&&(h.content||'')===(content||''));
  if(idx>=0)return showSameRecordChoice(c,date,content,progressType,d,idx);
+
+ // ReturnSlip50：不論回條或一般作業，只要同類別已有相同名稱／作業進度（即使日期不同）就先提醒。
+ // 同一天完全相同的紀錄已由上方「覆蓋／保留兩筆」處理，因此不會連續跳兩次提示。
+ if(String(content||'').trim()){
+   const sameProgress=state.history.find(h=>h.catId===c.id&&String(h.content||'').trim()===String(content||'').trim());
+   if(sameProgress)return showDuplicateProgressChoice(c,content,sameProgress,()=>commitHomeworkRecord(c,date,content,progressType,d,'new',-1),'新增');
+ }
 
  // 同一天但標題／進度不同：直接保留成另一筆。
  commitHomeworkRecord(c,date,content,progressType,d,'new',-1);
@@ -3198,7 +3225,7 @@ function startHistoryRecordEdit(id){
  renderAll();
  $('studentGrid')?.scrollIntoView({behavior:'smooth',block:'center'});
 }
-function saveHistoryRecordFromMain(){
+function saveHistoryRecordFromMain(duplicateConfirmed=false){
  const h=state.history.find(x=>x.id===historyEditId);
  if(!h)return cancelHistoryRecordEdit();
  const date=$('recordDate').value||TODAY,pr=buildContent();
@@ -3209,6 +3236,11 @@ function saveHistoryRecordFromMain(){
    $('progressValidationMsg')?.scrollIntoView({behavior:'smooth',block:'nearest'});
    if(msg)alert(msg);
    return;
+ }
+ const editCat=state.categories.find(x=>x.id===h.catId);
+ if(!duplicateConfirmed&&String(pr.content||'').trim()){
+   const sameProgress=state.history.find(x=>x.id!==h.id&&x.catId===h.catId&&String(x.content||'').trim()===String(pr.content||'').trim());
+   if(sameProgress)return showDuplicateProgressChoice(editCat,pr.content,sameProgress,()=>saveHistoryRecordFromMain(true),'儲存');
  }
  h.date=date;h.content=pr.content;h.progressType=pr.type;h.statuses={};
  for(let n=1;n<=state.studentCount;n++){
