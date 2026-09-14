@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>作業點名簿＋ v2.0 History16｜類別清除操作修正版</title>
+<title>作業點名簿＋ v2.0 History17｜類別清除按鈕精簡版</title>
 <style>
 :root{--bg:#f4f6f8;--card:#fff;--line:#dfe5ea;--text:#2f3b46;--muted:#8794a1;--blue:#4da3ff;--red:#ef5350;--yellow:#f6c945;--green:#59bf76;--orange:#f79a49}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif}
@@ -1689,9 +1689,55 @@ body.return-slip-mode .homework-entry-progress .direct-progress:not(:has(.skip-p
   .category-data-clear-mode-btn{min-height:34px!important;padding:6px 9px!important;font-size:13px!important}
 }
 </style>
+
+<style id="history17-category-clear-button-css">
+/* History17：類別區兩顆功能鍵完全比照聯絡簿展開／收起鍵；下方全選與取消勾選改為同列、同高但依文字自然寬度。 */
+#categoryEditBtn,
+#categoryDataClearBtn{
+  min-height:34px!important;
+  height:auto!important;
+  padding:6px 10px!important;
+  border-radius:9px!important;
+  font-size:13px!important;
+  font-weight:600!important;
+  line-height:1.15!important;
+  white-space:nowrap!important;
+  width:auto!important;
+  min-width:0!important;
+}
+.cat-data-clear-select-actions{
+  display:flex!important;
+  flex-direction:row!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  gap:6px!important;
+  flex-wrap:nowrap!important;
+}
+.cat-data-clear-select-actions .btn{
+  flex:0 0 auto!important;
+  min-height:34px!important;
+  height:34px!important;
+  padding:6px 9px!important;
+  font-size:12px!important;
+  line-height:1!important;
+  white-space:nowrap!important;
+}
+.cat-data-clear-select-all{
+  display:inline-flex!important;
+  flex-direction:row!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:0!important;
+}
+@media(max-width:560px){
+  #categoryEditBtn,#categoryDataClearBtn{min-height:34px!important;padding:6px 9px!important;font-size:13px!important}
+  .cat-data-clear-select-actions{width:100%!important;flex-wrap:nowrap!important}
+  .cat-data-clear-select-actions .btn{flex:0 0 auto!important}
+}
+</style>
 </head>
 <body>
-<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 History16</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
+<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 History17</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
 <div id="sandboxNotice" style="margin:10px auto 0;max-width:1180px;padding:8px 12px;border:1px solid #d5a72c;border-radius:10px;background:#fff8dc;color:#6b5314;font-size:13px;font-weight:700;box-sizing:border-box">🧪 r8 Sandbox 測試資料隔離模式｜不讀寫正式版 localStorage／Firestore 文件</div>
 <section id="cloudPanel" class="cloud-panel" aria-hidden="true">
   <div class="cloud-panel-head">
@@ -2636,7 +2682,7 @@ function renderCategoryDataClearRows(box){
  summary.append(summaryTitle,summaryCount);
  const actions=document.createElement('div');actions.className='cat-data-clear-actions';
  const selectRow=document.createElement('div');selectRow.className='cat-data-clear-select-actions';
- const selectAll=document.createElement('button');selectAll.type='button';selectAll.className='btn cat-data-clear-select-all';selectAll.innerHTML='<span>全選</span><span>(有資料)</span>';
+ const selectAll=document.createElement('button');selectAll.type='button';selectAll.className='btn cat-data-clear-select-all';selectAll.textContent='全選（有資料）';
  const clearSelection=document.createElement('button');clearSelection.type='button';clearSelection.className='btn';clearSelection.textContent='取消勾選';
  selectAll.disabled=state.categories.every(c=>categoryHistoryCount(c.id)===0)||state.categories.filter(c=>categoryHistoryCount(c.id)>0).every(c=>categoryDataClearIds.has(String(c.id)));
  clearSelection.disabled=categoryDataClearIds.size===0;
