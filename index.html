@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>作業點名簿＋ v2.0 History22｜手機批次刪除模式同步版</title>
+<title>作業點名簿＋ v2.0 History23｜手機批次刪除模式同步版</title>
 <style>
 :root{--bg:#f4f6f8;--card:#fff;--line:#dfe5ea;--text:#2f3b46;--muted:#8794a1;--blue:#4da3ff;--red:#ef5350;--yellow:#f6c945;--green:#59bf76;--orange:#f79a49}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif}
@@ -1817,9 +1817,80 @@ body.return-slip-mode .homework-entry-progress .direct-progress:not(:has(.skip-p
   #historyBatchToolbar .btn{flex:0 0 auto!important;min-height:31px!important;padding:5px 7px!important;font-size:11px!important}
 }
 </style>
+
+<style id="history23-mobile-category-clear-layout-css">
+/* History23：修正手機「清除資料」模式版面。
+   清除模式改為單欄完整寬度，避免沿用一般類別 3 欄格線而把勾選框、類別名稱與筆數擠壓。
+   僅影響手機／mobile-ux，桌機不動。 */
+html.mobile-ux .cat-list.data-clearing{
+  display:flex!important;
+  flex-direction:column!important;
+  width:100%!important;
+  gap:7px!important;
+}
+html.mobile-ux .cat-list.data-clearing .cat-data-clear-row{
+  display:grid!important;
+  grid-template-columns:24px minmax(0,1fr) auto!important;
+  width:100%!important;
+  min-width:0!important;
+  box-sizing:border-box!important;
+  align-items:center!important;
+  gap:8px!important;
+  padding:9px 10px!important;
+}
+html.mobile-ux .cat-list.data-clearing .cat-data-clear-name{
+  font-size:15px!important;
+  line-height:1.2!important;
+  font-weight:800!important;
+  text-align:left!important;
+}
+html.mobile-ux .cat-list.data-clearing .cat-data-clear-count{
+  grid-column:auto!important;
+  font-size:12px!important;
+  line-height:1.2!important;
+  white-space:nowrap!important;
+  text-align:right!important;
+}
+html.mobile-ux .cat-list.data-clearing .cat-data-clear-check{
+  width:19px!important;
+  height:19px!important;
+}
+html.mobile-ux .cat-data-clear-footer{
+  width:100%!important;
+  box-sizing:border-box!important;
+  margin-top:8px!important;
+}
+html.mobile-ux .cat-data-clear-select-actions{
+  width:auto!important;
+  display:flex!important;
+  flex-direction:row!important;
+  flex-wrap:nowrap!important;
+  gap:6px!important;
+}
+html.mobile-ux .cat-data-clear-select-actions .btn{
+  flex:0 0 auto!important;
+}
+html.mobile-ux .semester-clear-entry{
+  justify-content:flex-start!important;
+}
+html.mobile-ux .semester-clear-entry .btn{
+  width:auto!important;
+  white-space:nowrap!important;
+}
+@media(max-width:390px){
+  html.mobile-ux .cat-list.data-clearing .cat-data-clear-row{
+    grid-template-columns:22px minmax(0,1fr) auto!important;
+    padding:8px 9px!important;
+    gap:7px!important;
+  }
+  html.mobile-ux .cat-list.data-clearing .cat-data-clear-name{font-size:14.5px!important}
+  html.mobile-ux .cat-list.data-clearing .cat-data-clear-count{font-size:11.5px!important}
+}
+</style>
+
 </head>
 <body>
-<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 History22</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
+<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 History23</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
 <div id="sandboxNotice" style="margin:10px auto 0;max-width:1180px;padding:8px 12px;border:1px solid #d5a72c;border-radius:10px;background:#fff8dc;color:#6b5314;font-size:13px;font-weight:700;box-sizing:border-box">🧪 r8 Sandbox 測試資料隔離模式｜不讀寫正式版 localStorage／Firestore 文件</div>
 <section id="cloudPanel" class="cloud-panel" aria-hidden="true">
   <div class="cloud-panel-head">
@@ -5150,7 +5221,7 @@ initFirebase();
   if(!('serviceWorker' in navigator)) return;
   window.addEventListener('load',async()=>{
     try{
-      const reg=await navigator.serviceWorker.register('./hw-offline-sw.js?v=history22',{scope:'./',updateViaCache:'none'});
+      const reg=await navigator.serviceWorker.register('./hw-offline-sw.js?v=history23',{scope:'./',updateViaCache:'none'});
       await navigator.serviceWorker.ready;
       const worker=reg.active||reg.waiting||reg.installing;
       if(worker&&navigator.onLine) worker.postMessage({type:'CACHE_SHELL',url:location.href});
