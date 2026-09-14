@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>作業點名簿＋ v2.0 History14｜日期欄再下移版</title>
+<title>作業點名簿＋ v2.0 History15｜類別清除介面精簡版</title>
 <style>
 :root{--bg:#f4f6f8;--card:#fff;--line:#dfe5ea;--text:#2f3b46;--muted:#8794a1;--blue:#4da3ff;--red:#ef5350;--yellow:#f6c945;--green:#59bf76;--orange:#f79a49}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif}
@@ -1636,9 +1636,33 @@ body.return-slip-mode .homework-entry-progress .direct-progress:not(:has(.skip-p
 }
 </style>
 
+
+<style id="history15-category-clear-ui-css">
+/* History15：精簡類別標題與清除模式操作，保留 History14 的清除邏輯。 */
+.sidebar .side-head>b{font-size:16px!important;font-weight:800!important;color:var(--text)!important;line-height:1.25}
+.category-head-actions{align-items:center!important;gap:5px!important}
+.category-head-actions .btn{min-height:31px!important;padding:4px 8px!important;font-size:12px!important;border-radius:8px!important;line-height:1.12!important}
+.category-data-clear-mode-btn{min-height:31px!important;padding:3px 7px!important;font-size:10.5px!important;gap:1px!important}
+.cat-data-clear-summary{margin-bottom:8px!important;line-height:1.35}
+.cat-data-clear-summary-title{font-size:12px;font-weight:800;color:#8a4545}
+.cat-data-clear-summary-count{font-size:12.5px;font-weight:850;color:#8a4545;margin-top:2px}
+.cat-data-clear-actions{display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:7px!important}
+.cat-data-clear-select-actions{display:flex;gap:6px;align-items:center}
+.cat-data-clear-select-actions .btn{flex:1 1 0;min-width:0}
+.cat-data-clear-delete{align-self:flex-end;min-width:138px}
+.cat-data-clear-confirm .actions{align-items:stretch}
+.cat-data-clear-back{display:inline-flex!important;flex-direction:column;align-items:center;justify-content:center;line-height:1.05;gap:1px;min-width:58px}
+@media(max-width:560px){
+  .sidebar .side-head>b{font-size:16px!important}
+  .category-head-actions .btn{min-height:30px!important;padding:3px 7px!important;font-size:11.5px!important}
+  .category-data-clear-mode-btn{font-size:10px!important;padding:3px 6px!important}
+  .cat-data-clear-select-actions{width:100%}
+  .cat-data-clear-delete{width:auto;align-self:flex-end}
+}
+</style>
 </head>
 <body>
-<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 History14</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
+<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 History15</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
 <div id="sandboxNotice" style="margin:10px auto 0;max-width:1180px;padding:8px 12px;border:1px solid #d5a72c;border-radius:10px;background:#fff8dc;color:#6b5314;font-size:13px;font-weight:700;box-sizing:border-box">🧪 r8 Sandbox 測試資料隔離模式｜不讀寫正式版 localStorage／Firestore 文件</div>
 <section id="cloudPanel" class="cloud-panel" aria-hidden="true">
   <div class="cloud-panel-head">
@@ -1730,7 +1754,7 @@ body.return-slip-mode .homework-entry-progress .direct-progress:not(:has(.skip-p
 
 <div class="main">
 <aside class="card sidebar">
-  <div class="side-head"><b>類別</b><div class="category-head-actions"><button id="categoryEditBtn" class="btn" type="button">✎ 編輯</button><button id="categoryDataClearBtn" class="btn category-data-clear-mode-btn" type="button"><span>批次清除</span><span>類別資料</span></button></div></div>
+  <div class="side-head"><b>類別</b><div class="category-head-actions"><button id="categoryEditBtn" class="btn" type="button">編輯</button><button id="categoryDataClearBtn" class="btn category-data-clear-mode-btn" type="button"><span>批次清除</span><span>資料</span></button></div></div>
   <div id="mobileCategoryHead" class="mobile-category-head mobile-only">
 <span class="mobile-category-current">目前：<span id="mobileCurrentCategory">—</span></span>
 <button id="mobileCategoryToggleBtn" class="btn" type="button" aria-expanded="true">收起類別 ▲</button>
@@ -2560,8 +2584,8 @@ function selectCategory(id){
 function categoryHistoryCount(id){return state.history.reduce((n,h)=>n+(String(h.catId)===String(id)?1:0),0)}
 function syncCategoryModeButtons(){
  const edit=$('categoryEditBtn'),clear=$('categoryDataClearBtn');
- if(edit){edit.textContent=categoryEditMode?'完成':'✎ 編輯';edit.disabled=categoryDataClearMode}
- if(clear){clear.classList.toggle('active',categoryDataClearMode);clear.innerHTML=categoryDataClearMode?'<span>離開清除</span><span>類別資料</span>':'<span>批次清除</span><span>類別資料</span>';clear.disabled=categoryEditMode}
+ if(edit){edit.textContent=categoryEditMode?'完成':'編輯';edit.disabled=categoryDataClearMode}
+ if(clear){clear.classList.toggle('active',categoryDataClearMode);clear.innerHTML=categoryDataClearMode?'<span>離開清除</span><span>模式</span>':'<span>批次清除</span><span>資料</span>';clear.disabled=categoryEditMode}
 }
 function renderCategoryDataClearRows(box){
  // 進入清除模式時，有資料的類別預設全選；沒有資料者保留可辨識但不可選。
@@ -2577,15 +2601,21 @@ function renderCategoryDataClearRows(box){
  });
  const total=[...categoryDataClearIds].reduce((n,id)=>n+categoryHistoryCount(id),0);
  const footer=document.createElement('div');footer.className='cat-data-clear-footer';
- const summary=document.createElement('div');summary.className='cat-data-clear-summary';summary.textContent=`目前選取 ${categoryDataClearIds.size} 個類別｜共 ${total} 筆紀錄`;
+ const summary=document.createElement('div');summary.className='cat-data-clear-summary';
+ const summaryTitle=document.createElement('div');summaryTitle.className='cat-data-clear-summary-title';summaryTitle.textContent='目前選取';
+ const summaryCount=document.createElement('div');summaryCount.className='cat-data-clear-summary-count';summaryCount.textContent=`${categoryDataClearIds.size} 個類別｜共 ${total} 筆紀錄`;
+ summary.append(summaryTitle,summaryCount);
  const actions=document.createElement('div');actions.className='cat-data-clear-actions';
- const clearSelection=document.createElement('button');clearSelection.type='button';clearSelection.className='btn clear-selection';clearSelection.textContent='取消全部勾選';clearSelection.disabled=categoryDataClearIds.size===0;
- const exit=document.createElement('button');exit.type='button';exit.className='btn';exit.textContent='離開清除模式';
- const del=document.createElement('button');del.type='button';del.className='btn danger';del.textContent='永久清除所選資料';del.disabled=categoryDataClearIds.size===0||total===0;
+ const selectRow=document.createElement('div');selectRow.className='cat-data-clear-select-actions';
+ const selectAll=document.createElement('button');selectAll.type='button';selectAll.className='btn';selectAll.textContent='全選有資料類別';
+ const clearSelection=document.createElement('button');clearSelection.type='button';clearSelection.className='btn';clearSelection.textContent='取消全部勾選';
+ selectAll.disabled=state.categories.every(c=>categoryHistoryCount(c.id)===0)||state.categories.filter(c=>categoryHistoryCount(c.id)>0).every(c=>categoryDataClearIds.has(String(c.id)));
+ clearSelection.disabled=categoryDataClearIds.size===0;
+ const del=document.createElement('button');del.type='button';del.className='btn danger cat-data-clear-delete';del.textContent='永久清除所選資料';del.disabled=categoryDataClearIds.size===0||total===0;
+ selectAll.addEventListener('click',()=>{state.categories.forEach(c=>{if(categoryHistoryCount(c.id)>0)categoryDataClearIds.add(String(c.id))});renderCats()});
  clearSelection.addEventListener('click',()=>{categoryDataClearIds.clear();renderCats()});
- exit.addEventListener('click',()=>exitCategoryDataClearMode());
  del.addEventListener('click',()=>showCategoryDataClearConfirm(footer));
- actions.append(clearSelection,exit,del);footer.append(summary,actions);box.appendChild(footer);
+ selectRow.append(selectAll,clearSelection);actions.append(selectRow,del);footer.append(summary,actions);box.appendChild(footer);
 }
 function enterCategoryDataClearMode(){
  if(categoryEditMode)return;
@@ -2603,7 +2633,7 @@ function showCategoryDataClearConfirm(footer){
  const box=document.createElement('div');box.className='cat-data-clear-confirm';
  const msg=document.createElement('span');msg.textContent=`即將永久清除 ${names.length} 個類別、共 ${records.length} 筆歷史紀錄：${names.join('、')}。類別本身會保留，刪除後無法復原。`;
  const acts=document.createElement('span');acts.className='actions';
- const no=document.createElement('button');no.type='button';no.className='btn';no.textContent='返回選擇';no.addEventListener('click',()=>box.remove());
+ const no=document.createElement('button');no.type='button';no.className='btn cat-data-clear-back';no.innerHTML='<span>返回</span><span>選擇</span>';no.addEventListener('click',()=>box.remove());
  const yes=document.createElement('button');yes.type='button';yes.className='btn danger';yes.textContent=`確認永久清除 ${records.length} 筆`;yes.addEventListener('click',()=>{commitCategoryDataClear(ids);categoryDataClearMode=false;categoryDataClearIds.clear();syncCategoryModeButtons()});
  acts.append(no,yes);box.append(msg,acts);footer.appendChild(box);
 }
