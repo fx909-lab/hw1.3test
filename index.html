@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>作業點名簿＋ v2.0 History19｜類別按鈕右移版</title>
+<title>作業點名簿＋ v2.0 History20｜類別按鈕右移版</title>
 <style>
 :root{--bg:#f4f6f8;--card:#fff;--line:#dfe5ea;--text:#2f3b46;--muted:#8794a1;--blue:#4da3ff;--red:#ef5350;--yellow:#f6c945;--green:#59bf76;--orange:#f79a49}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif}
@@ -1747,7 +1747,7 @@ body.return-slip-mode .homework-entry-progress .direct-progress:not(:has(.skip-p
 </style>
 
 <style id="history19-category-action-group-fix-css">
-/* History19：History18 只推到其中一顆造成重疊；改為把兩顆按鈕視為同一組一起右移，並保留固定間距。 */
+/* History20：History18 只推到其中一顆造成重疊；改為把兩顆按鈕視為同一組一起右移，並保留固定間距。 */
 @media (min-width:761px){
   .sidebar .side-head .category-head-actions{
     margin-left:auto!important;
@@ -1757,9 +1757,41 @@ body.return-slip-mode .homework-entry-progress .direct-progress:not(:has(.skip-p
   }
 }
 </style>
+
+<style id="history20-category-action-container-css">
+/* History20：移除 History18/19 的位移補丁，直接由共同容器負責右對齊與按鈕間距。 */
+@media (min-width:761px){
+  .sidebar .side-head{
+    display:flex!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+    gap:8px!important;
+    width:100%!important;
+    box-sizing:border-box!important;
+  }
+  .sidebar .side-head .category-head-actions{
+    display:flex!important;
+    align-items:center!important;
+    justify-content:flex-end!important;
+    flex:0 0 auto!important;
+    margin-left:auto!important;
+    margin-right:0!important;
+    padding:0!important;
+    gap:8px!important;
+    transform:none!important;
+  }
+  #categoryEditBtn,
+  #categoryDataClearBtn{
+    position:static!important;
+    transform:none!important;
+    margin:0!important;
+    flex:0 0 auto!important;
+  }
+}
+</style>
 </head>
 <body>
-<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 History19</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
+<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 History20</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
 <div id="sandboxNotice" style="margin:10px auto 0;max-width:1180px;padding:8px 12px;border:1px solid #d5a72c;border-radius:10px;background:#fff8dc;color:#6b5314;font-size:13px;font-weight:700;box-sizing:border-box">🧪 r8 Sandbox 測試資料隔離模式｜不讀寫正式版 localStorage／Firestore 文件</div>
 <section id="cloudPanel" class="cloud-panel" aria-hidden="true">
   <div class="cloud-panel-head">
