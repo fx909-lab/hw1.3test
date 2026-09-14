@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>作業點名簿＋ v2.0 History20｜類別按鈕右移版</title>
+<title>作業點名簿＋ v2.0 History21｜整學期資料清除版</title>
 <style>
 :root{--bg:#f4f6f8;--card:#fff;--line:#dfe5ea;--text:#2f3b46;--muted:#8794a1;--blue:#4da3ff;--red:#ef5350;--yellow:#f6c945;--green:#59bf76;--orange:#f79a49}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif}
@@ -1789,9 +1789,23 @@ body.return-slip-mode .homework-entry-progress .direct-progress:not(:has(.skip-p
   }
 }
 </style>
+
+<style id="history21-semester-clear-css">
+/* History21：整學期資料清除。沿用清除資料模式，避免增加常駐大型面板。 */
+.semester-clear-entry{margin-top:9px;padding-top:9px;border-top:1px solid #efd4d4;display:flex;justify-content:flex-end}
+.semester-clear-entry .btn{font-size:12px!important;min-height:31px!important;padding:5px 9px!important}
+.semester-clear-panel{margin-top:8px;padding:9px;border:1px solid #e9b0b0;border-radius:9px;background:#fff1f1}
+.semester-clear-panel-title{font-size:12.5px;font-weight:850;color:#8a4545;margin-bottom:7px}
+.semester-clear-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.semester-clear-select{min-width:150px;flex:1 1 150px;min-height:34px;border:1px solid var(--line);border-radius:8px;background:#fff;padding:5px 8px;font:inherit}
+.semester-clear-preview{font-size:12px;color:#7e5b5b;line-height:1.45;margin-top:7px}
+.semester-clear-confirm{margin-top:8px;padding-top:8px;border-top:1px solid #e8bebe;font-size:12px;line-height:1.5;color:#704646}
+.semester-clear-confirm-actions{display:flex;justify-content:flex-end;gap:7px;margin-top:8px}
+@media(max-width:760px){.semester-clear-row{align-items:stretch}.semester-clear-row .btn{flex:0 0 auto}.semester-clear-confirm-actions .btn{flex:1 1 0}}
+</style>
 </head>
 <body>
-<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 History20</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
+<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 History21</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
 <div id="sandboxNotice" style="margin:10px auto 0;max-width:1180px;padding:8px 12px;border:1px solid #d5a72c;border-radius:10px;background:#fff8dc;color:#6b5314;font-size:13px;font-weight:700;box-sizing:border-box">🧪 r8 Sandbox 測試資料隔離模式｜不讀寫正式版 localStorage／Firestore 文件</div>
 <section id="cloudPanel" class="cloud-panel" aria-hidden="true">
   <div class="cloud-panel-head">
@@ -2744,7 +2758,45 @@ function renderCategoryDataClearRows(box){
  selectAll.addEventListener('click',()=>{state.categories.forEach(c=>{if(categoryHistoryCount(c.id)>0)categoryDataClearIds.add(String(c.id))});renderCats()});
  clearSelection.addEventListener('click',()=>{categoryDataClearIds.clear();renderCats()});
  del.addEventListener('click',()=>showCategoryDataClearConfirm(footer));
- selectRow.append(selectAll,clearSelection);actions.append(selectRow,del);footer.append(summary,actions);box.appendChild(footer);
+ selectRow.append(selectAll,clearSelection);actions.append(selectRow,del);footer.append(summary,actions);
+ const semesterEntry=document.createElement('div');semesterEntry.className='semester-clear-entry';
+ const semesterBtn=document.createElement('button');semesterBtn.type='button';semesterBtn.className='btn danger';semesterBtn.textContent='清除整學期資料';semesterBtn.disabled=state.history.length===0;
+ semesterBtn.addEventListener('click',()=>showSemesterClearPanel(footer));semesterEntry.appendChild(semesterBtn);footer.appendChild(semesterEntry);
+ box.appendChild(footer);
+}
+function semesterInfoFromDate(dateStr){
+ const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dateStr||''));if(!m)return null;
+ const y=Number(m[1]),mo=Number(m[2]);if(y<2000||mo<1||mo>12)return null;
+ const startYear=mo>=8?y:y-1;const term=mo>=8?'上學期':'下學期';
+ return {key:`${startYear}-${term==='上學期'?'upper':'lower'}`,label:`${startYear-1911} 學年度${term}`,start:term==='上學期'?`${startYear}-08-01`:`${startYear+1}-02-01`,end:term==='上學期'?`${startYear+1}-01-31`:`${startYear+1}-07-31`};
+}
+function detectedSemesters(){
+ const map=new Map();state.history.forEach(h=>{const info=semesterInfoFromDate(h.date);if(!info)return;const cur=map.get(info.key)||{...info,count:0};cur.count++;map.set(info.key,cur)});
+ return [...map.values()].sort((a,b)=>b.start.localeCompare(a.start));
+}
+function showSemesterClearPanel(footer){
+ footer.querySelector('.semester-clear-panel')?.remove();const semesters=detectedSemesters();if(!semesters.length)return alert('目前沒有可辨識學期的歷史資料。');
+ const panel=document.createElement('div');panel.className='semester-clear-panel';
+ const title=document.createElement('div');title.className='semester-clear-panel-title';title.textContent='整學期資料清除';
+ const row=document.createElement('div');row.className='semester-clear-row';const select=document.createElement('select');select.className='semester-clear-select';
+ semesters.forEach(x=>{const o=document.createElement('option');o.value=x.key;o.textContent=`${x.label}（${x.count} 筆）`;select.appendChild(o)});
+ const prepare=document.createElement('button');prepare.type='button';prepare.className='btn danger';prepare.textContent='準備清除';
+ const preview=document.createElement('div');preview.className='semester-clear-preview';
+ const refresh=()=>{const x=semesters.find(v=>v.key===select.value)||semesters[0];preview.textContent=`範圍：${x.start}～${x.end}｜共 ${x.count} 筆歷史紀錄。只清除作業／回條歷史資料，類別、學生數與目前設定會保留。`};
+ select.addEventListener('change',()=>{panel.querySelector('.semester-clear-confirm')?.remove();refresh()});prepare.addEventListener('click',()=>showSemesterClearConfirm(panel,semesters.find(v=>v.key===select.value)));
+ row.append(select,prepare);panel.append(title,row,preview);footer.appendChild(panel);refresh();
+}
+function showSemesterClearConfirm(panel,info){
+ if(!info)return;panel.querySelector('.semester-clear-confirm')?.remove();const records=state.history.filter(h=>{const x=semesterInfoFromDate(h.date);return x?.key===info.key});if(!records.length)return alert('這個學期目前已沒有歷史資料。');
+ const box=document.createElement('div');box.className='semester-clear-confirm';const msg=document.createElement('div');msg.textContent=`即將永久清除 ${info.label} 的 ${records.length} 筆歷史紀錄。類別本身與目前設定會保留；刪除後無法復原。`;
+ const acts=document.createElement('div');acts.className='semester-clear-confirm-actions';const back=document.createElement('button');back.type='button';back.className='btn';back.textContent='返回選擇';back.addEventListener('click',()=>box.remove());
+ const yes=document.createElement('button');yes.type='button';yes.className='btn danger';yes.textContent=`確認永久清除 ${records.length} 筆`;yes.addEventListener('click',()=>commitSemesterClear(info.key));acts.append(back,yes);box.append(msg,acts);panel.appendChild(box);
+}
+function commitSemesterClear(semesterKey){
+ const deleted=new Set(state.history.filter(h=>semesterInfoFromDate(h.date)?.key===semesterKey).map(h=>String(h.id)));if(!deleted.size)return;
+ state.history=state.history.filter(h=>!deleted.has(String(h.id)));
+ if(historyEditId&&deleted.has(String(historyEditId)))cancelHistoryRecordEdit(false);if(historyOkEditId&&deleted.has(String(historyOkEditId))){historyOkEditId='';historyOkPending.clear()};if(independentSummaryViewId&&deleted.has(String(independentSummaryViewId)))independentSummaryViewId='';if(historyBatchDeleteMode)cancelHistoryBatchDelete(false);
+ recomputeAllContinuousResolutions();save();renderAll();syncCategoryModeButtons();
 }
 function enterCategoryDataClearMode(){
  if(categoryEditMode)return;
