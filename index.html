@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>作業點名簿＋ v2.0 History27｜排除請假即時顯示修正版</title>
+<title>作業點名簿＋ v2.0 History28｜學期隔離核心版</title>
 <style>
 :root{--bg:#f4f6f8;--card:#fff;--line:#dfe5ea;--text:#2f3b46;--muted:#8794a1;--blue:#4da3ff;--red:#ef5350;--yellow:#f6c945;--green:#59bf76;--orange:#f79a49}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif}
@@ -1901,7 +1901,7 @@ html.mobile-ux .cat-data-clear-back{white-space:nowrap!important;}
 </style>
 </head>
 <body>
-<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 History27</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
+<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 History28</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
 <div id="sandboxNotice" style="margin:10px auto 0;max-width:1180px;padding:8px 12px;border:1px solid #d5a72c;border-radius:10px;background:#fff8dc;color:#6b5314;font-size:13px;font-weight:700;box-sizing:border-box">🧪 r8 Sandbox 測試資料隔離模式｜不讀寫正式版 localStorage／Firestore 文件</div>
 <section id="cloudPanel" class="cloud-panel" aria-hidden="true">
   <div class="cloud-panel-head">
@@ -2398,7 +2398,7 @@ function compareHistory(a,b){
  const ac=historyCreationStamp(a,ai),bc=historyCreationStamp(b,bi);
  return bc-ac||bi-ai;
 }
-function latestRecord(catId){return state.history.filter(h=>h.catId===catId).sort(compareHistory)[0]||null}
+function latestRecord(catId,semesterKey=null){return state.history.filter(h=>h.catId===catId&&(!semesterKey||semesterKeyOfRecord(h)===semesterKey)).sort(compareHistory)[0]||null}
 function recordHasPending(h){if(!h)return false;if(isReturnSlipCategory(h.catId)){for(let n=1;n<=state.studentCount;n++)if(isReturnSlipPendingStatus(h.statuses?.[n]||'red'))return true;return false}for(let n=1;n<=state.studentCount;n++){const st=h.statuses[n];if(['red','yellow','green','ring','orange'].includes(st)&&!h.resolved?.[n])return true}return false}
 function fmtDate(d){if(!d)return'';const[,m,day]=d.split('-');return`${Number(m)}/${Number(day)}`}
 
@@ -2867,6 +2867,10 @@ function semesterInfoFromDate(dateStr){
  const startYear=mo>=8?y:(mo===1?y-1:y-1);const term=isUpper?'上學期':'下學期';
  return {key:`${startYear}-${isUpper?'upper':'lower'}`,label:`${startYear-1911} 學年度${term}`,start:isUpper?`${startYear}-08-01`:`${startYear+1}-02-01`,end:isUpper?`${startYear+1}-01-31`:`${startYear+1}-07-31`};
 }
+function currentSemesterInfo(){return semesterInfoFromDate(TODAY)}
+function semesterKeyOfRecord(h){return semesterInfoFromDate(h?.date)?.key||''}
+function isCurrentSemesterRecord(h){const cur=currentSemesterInfo();return !!cur&&semesterKeyOfRecord(h)===cur.key}
+function historyForSemester(semesterKey){return state.history.filter(h=>semesterKeyOfRecord(h)===semesterKey)}
 function detectedSemesters(){
  const map=new Map();state.history.forEach(h=>{const info=semesterInfoFromDate(h.date);if(!info)return;const cur=map.get(info.key)||{...info,count:0};cur.count++;map.set(info.key,cur)});
  return [...map.values()].sort((a,b)=>b.start.localeCompare(a.start));
@@ -3203,10 +3207,10 @@ function historyCreationStamp(h,index=0){
  const fallback=Number(h?.updated);
  return Number.isFinite(fallback)?fallback:index;
 }
-function continuousChronological(catId){
+function continuousChronological(catId,semesterKey=null){
  const indexed=state.history
    .map((h,index)=>({h,index}))
-   .filter(x=>x.h.catId===catId);
+   .filter(x=>x.h.catId===catId&&(!semesterKey||semesterKeyOfRecord(x.h)===semesterKey));
  indexed.sort((a,b)=>{
    const d=String(a.h.date).localeCompare(String(b.h.date));
    if(d)return d;
@@ -3236,12 +3240,15 @@ function applyContinuousResolution(current,earlier){
 function recomputeContinuousResolutions(catId){
  const category=state.categories.find(c=>c.id===catId);
  if(!category||category.kind!=='continuous')return;
- const records=continuousChronological(catId);
+ const allRecords=continuousChronological(catId);
+ const groups=new Map();
+ for(const h of allRecords){const key=semesterKeyOfRecord(h)||'__undated__';if(!groups.has(key))groups.set(key,[]);groups.get(key).push(h)}
 
+ // History28：連續作業的完成推算以「同類別＋同學期」為硬邊界，絕不跨學期承接。
  // DataLogicFix9：不再每次把所有舊 OK 清空後重算。
  // 「未通過／取消 OK」只會由實際被修改的那一筆往更新紀錄刪除；
  // 更舊紀錄既有的 OK 必須保留。這裡只負責把新的完成結果向前補 OK。
- for(const h of records){
+ for(const h of allRecords){
    h.resolved||={};h.resolvedParts||={};h.manualResolved||={};
    // 新規則不再由黃色／綠色等未通過狀態產生部分完成；清掉舊版遺留的部分註記。
    for(const seat of Object.keys(h.resolvedParts)){
@@ -3256,7 +3263,7 @@ function recomputeContinuousResolutions(catId){
      h.resolvedParts[seat]={missing:true,correction:true,signature:true};
    }
  }
- for(let i=0;i<records.length;i++)applyContinuousResolution(records[i],records.slice(0,i));
+ for(const records of groups.values())for(let i=0;i<records.length;i++)applyContinuousResolution(records[i],records.slice(0,i));
 }
 function recomputeAllContinuousResolutions(){
  for(const c of state.categories)if(c.kind==='continuous')recomputeContinuousResolutions(c.id);
@@ -3449,7 +3456,7 @@ function workKeyword(content){
  return Array.from(s).slice(0,2).join('');
 }
 function independentWorkTags(catId){
- const records=state.history.filter(h=>h.catId===catId&&hasUnresolvedIndependentRecord(h)).sort(compareHistory);
+ const records=state.history.filter(h=>h.catId===catId&&isCurrentSemesterRecord(h)&&hasUnresolvedIndependentRecord(h)).sort(compareHistory);
  if(!records.length)return'';
  const tags=records.slice(0,4).map(h=>{
    const autoKey=workKeyword(h.content),manual=cleanText(h.workLabel||'',6).trim();
@@ -3465,7 +3472,7 @@ function independentWorkTags(catId){
 function independentPendingCounts(catId,seat){
  const counts={red:0,green:0,ring:0,yellow:0,orange:0};
  for(const h of state.history){
-   if(h.catId!==catId)continue;
+   if(h.catId!==catId||!isCurrentSemesterRecord(h))continue;
    const st=h.statuses?.[seat];
    if(!Object.prototype.hasOwnProperty.call(counts,st))continue;
    if(isStatusFullyResolved(h,seat))continue;
@@ -3525,7 +3532,7 @@ function quickResolveStudentHistory(historyId,seat){
 function bindStudentQuickOkButtons(){
  document.querySelectorAll('.student-quick-ok').forEach(btn=>btn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();quickResolveStudentHistory(String(btn.dataset.historyId||''),Number(btn.dataset.seat))}));
 }
-function studentHasAnyHistory(catId){return state.history.some(h=>h.catId===catId)}
+function studentHasAnyHistory(catId,semesterKey=null){return state.history.some(h=>h.catId===catId&&(!semesterKey||semesterKeyOfRecord(h)===semesterKey))}
 function studentRecordIsPending(h,seat){
  if(!h)return false;
  const st=h.statuses?.[seat]||'red';
@@ -3534,8 +3541,9 @@ function studentRecordIsPending(h,seat){
  return ['red','yellow','green','ring','orange'].includes(st)&&!isStatusFullyResolved(h,seat);
 }
 function categoryPendingForStudent(c,seat){
- if(c.kind==='continuous')return studentRecordIsPending(latestRecord(c.id),seat);
- return state.history.some(h=>h.catId===c.id&&studentRecordIsPending(h,seat));
+ const key=currentSemesterInfo()?.key||'';
+ if(c.kind==='continuous')return studentRecordIsPending(latestRecord(c.id,key),seat);
+ return state.history.some(h=>h.catId===c.id&&semesterKeyOfRecord(h)===key&&studentRecordIsPending(h,seat));
 }
 function sortStudentRecordCategories(cats,seat){
  if(studentRecordSortMode!=='pending')return [...cats];
@@ -3574,15 +3582,16 @@ function renderStudentRecord(){
    b.addEventListener('click',()=>{selectedStudentSeat=n;renderStudentRecord()});
    picker.appendChild(b);
  }
- const cats=state.categories.filter(c=>studentHasAnyHistory(c.id));
- if(!cats.length){body.innerHTML='<div class="student-record-empty">目前尚無任何正式作業紀錄。</div>';return}
+ const currentSemester=currentSemesterInfo(),semesterKey=currentSemester?.key||'';
+ const cats=state.categories.filter(c=>studentHasAnyHistory(c.id,semesterKey));
+ if(!cats.length){body.innerHTML='<div class="student-record-empty">目前學期尚無任何正式作業紀錄。</div>';return}
  const continuous=sortStudentRecordCategories(cats.filter(c=>c.kind==='continuous'&&!isReturnSlipCategory(c)),selectedStudentSeat);
  const returnSlips=sortStudentRecordCategories(cats.filter(c=>isReturnSlipCategory(c)),selectedStudentSeat);
  const independent=sortStudentRecordCategories(cats.filter(c=>c.kind==='independent'&&!isReturnSlipCategory(c)),selectedStudentSeat);
- let out=`<div class="small" style="margin-bottom:6px"><b>${selectedStudentSeat} 號</b>｜只顯示已有正式登記紀錄的類別</div>`;
+ let out=`<div class="small" style="margin-bottom:6px"><b>${selectedStudentSeat} 號</b>｜${esc(currentSemester?.label||'目前學期')}｜只顯示本學期正式登記紀錄</div>`;
  if(continuous.length){
    const rows=studentRecordRowsWithBreak(continuous,selectedStudentSeat,(c,addBreak)=>{
-     const h=latestRecord(c.id),st=h.statuses?.[selectedStudentSeat]||'red';
+     const h=latestRecord(c.id,semesterKey),st=h.statuses?.[selectedStudentSeat]||'red';
      return `<tr${addBreak?' class="student-record-priority-break"':''}><td>${esc(c.name)}</td><td>${h.date}</td><td>${h.content?esc(h.content):'—'}</td><td>${statusText(st,h,selectedStudentSeat)}${studentQuickOkButton(h,selectedStudentSeat)}</td></tr>`;
    });
    out+=`<section class="student-record-section"><h4>連續作業｜最新一期</h4><div class="student-record-table-wrap"><table class="student-record-table"><colgroup><col class="student-col-category"><col class="student-col-date"><col class="student-col-progress"><col class="student-col-status"></colgroup><thead><tr><th>類別</th><th>日期</th><th>進度</th><th>狀態</th></tr></thead><tbody>${rows}</tbody></table></div></section>`;
@@ -3592,7 +3601,7 @@ function renderStudentRecord(){
    // 這樣同一類別中，未完成的題目／篇目也會真正浮到已通過紀錄之前。
    let independentRows=[];
    independent.forEach((c,catIndex)=>{
-     const recs=state.history.filter(h=>h.catId===c.id).sort(compareHistory);
+     const recs=state.history.filter(h=>h.catId===c.id&&semesterKeyOfRecord(h)===semesterKey).sort(compareHistory);
      recs.forEach((h,recordIndex)=>independentRows.push({c,h,catIndex,recordIndex,pending:studentRecordIsPending(h,selectedStudentSeat)}));
    });
    if(studentRecordSortMode==='pending'){
@@ -3611,7 +3620,7 @@ function renderStudentRecord(){
  if(returnSlips.length){
    let slipRows=[];
    returnSlips.forEach((c,catIndex)=>{
-     const recs=state.history.filter(h=>h.catId===c.id).sort(compareHistory);
+     const recs=state.history.filter(h=>h.catId===c.id&&semesterKeyOfRecord(h)===semesterKey).sort(compareHistory);
      recs.forEach((h,recordIndex)=>slipRows.push({c,h,catIndex,recordIndex,pending:studentRecordIsPending(h,selectedStudentSeat)}));
    });
    if(studentRecordSortMode==='pending')slipRows.sort((a,b)=>Number(b.pending)-Number(a.pending)||a.catIndex-b.catIndex||a.recordIndex-b.recordIndex);
@@ -3678,14 +3687,14 @@ function parseStudentExportRange(raw){
  return {seats:seats.sort((a,b)=>a-b)};
 }
 function studentExportRows(seat){
- const cats=state.categories.filter(c=>studentHasAnyHistory(c.id));
+ const cats=state.categories.filter(c=>studentHasAnyHistory(c.id,currentSemesterInfo()?.key||''));
  const continuous=cats.filter(c=>c.kind==='continuous');
  const independent=cats.filter(c=>c.kind==='independent');
  const rows=[[`${seat}號 學生作業紀錄`],[]];
  if(continuous.length){
    rows.push(['連續作業｜最新一期'],['類別','日期','進度','狀態']);
    for(const c of continuous){
-     const h=latestRecord(c.id);if(!h)continue;
+     const h=latestRecord(c.id,currentSemesterInfo()?.key||'');if(!h)continue;
      rows.push([c.name,h.date,h.content||'—',studentExportStatusText(h,seat)]);
    }
  }
@@ -3693,7 +3702,7 @@ function studentExportRows(seat){
    if(continuous.length)rows.push([]);
    rows.push(['獨立項目｜全部紀錄'],['類別','日期','進度／標題','狀態']);
    for(const c of independent){
-     const recs=state.history.filter(h=>h.catId===c.id).sort(compareHistory);
+     const recs=state.history.filter(h=>h.catId===c.id&&isCurrentSemesterRecord(h)).sort(compareHistory);
      for(const h of recs)rows.push([c.name,h.date,h.content||'—',studentExportStatusText(h,seat)]);
    }
  }
@@ -3703,13 +3712,13 @@ function studentSummaryRows(seats){
  // alpha.44：匯出給老師查閱的彙總表只保留實際需要的紀錄欄位，
  // 不再輸出「連續作業／獨立項目」這個系統分類欄。
  const rows=[['座號','類別','日期','進度／標題','狀態']];
- const cats=state.categories.filter(c=>studentHasAnyHistory(c.id));
+ const cats=state.categories.filter(c=>studentHasAnyHistory(c.id,currentSemesterInfo()?.key||''));
  for(const seat of seats){
    for(const c of cats){
      if(c.kind==='continuous'){
-       const h=latestRecord(c.id);if(h)rows.push([String(seat),c.name,h.date,h.content||'—',studentExportStatusText(h,seat)]);
+       const h=latestRecord(c.id,currentSemesterInfo()?.key||'');if(h)rows.push([String(seat),c.name,h.date,h.content||'—',studentExportStatusText(h,seat)]);
      }else{
-       const recs=state.history.filter(h=>h.catId===c.id).sort(compareHistory);
+       const recs=state.history.filter(h=>h.catId===c.id&&isCurrentSemesterRecord(h)).sort(compareHistory);
        for(const h of recs)rows.push([String(seat),c.name,h.date,h.content||'—',studentExportStatusText(h,seat)]);
      }
    }
@@ -3916,14 +3925,14 @@ function overviewProgressDateHTML(h,c){
  return `<div class="overview-progress-date">${progress?`<span>${esc(progress)}</span>`:''}<span class="overview-date-only">${esc(date)}</span></div>`;
 }
 function overviewColumns(){
- const cols=[];
+ const cols=[],semesterKey=currentSemesterInfo()?.key||'';
  for(const c of state.categories){
-   if(c.showOverview===false||!studentHasAnyHistory(c.id))continue;
+   if(c.showOverview===false||!studentHasAnyHistory(c.id,semesterKey))continue;
    if(c.kind==='continuous'){
-     const h=latestRecord(c.id);if(h)cols.push({c,h});
+     const h=latestRecord(c.id,semesterKey);if(h)cols.push({c,h});
    }else{
-     // 獨立項目每一筆正式紀錄各自成為一個直行；同類別多篇不互相覆蓋。
-     const recs=state.history.filter(h=>h.catId===c.id).sort(compareHistory);
+     // History28：總覽只顯示目前學期；舊學期資料保留但不得混入目前學期總覽。
+     const recs=state.history.filter(h=>h.catId===c.id&&semesterKeyOfRecord(h)===semesterKey).sort(compareHistory);
      for(const h of recs)cols.push({c,h});
    }
  }
@@ -3985,7 +3994,7 @@ function commitHistoryOkEdits(){
        // 更早紀錄保持原狀。這樣 recompute 不會立刻被較新的手動 OK 再補回來。
        delete h.resolved[seat];delete h.resolvedParts[seat];delete h.manualResolved[seat];
        if(c?.kind==='continuous'){
-         const ordered=continuousChronological(h.catId);
+         const ordered=continuousChronological(h.catId,semesterKeyOfRecord(h));
          const pos=ordered.findIndex(x=>x.id===h.id);
          if(pos>=0){
            for(const later of ordered.slice(pos+1)){
@@ -4088,7 +4097,7 @@ function saveHistoryRecordFromMain(duplicateConfirmed=false){
  // 後面已存在的較新紀錄同步退回同一原始狀態。之後只有重新更新較新紀錄，
  // 才能再次用較新結果推算舊紀錄的 OK。
  if(c?.kind==='continuous'){
-   const ordered=continuousChronological(h.catId);
+   const ordered=continuousChronological(h.catId,semesterKeyOfRecord(h));
    const pos=ordered.findIndex(x=>x.id===h.id);
    if(pos>=0){
      // DataLogicFix5：某筆的完成判定被取消／改回未完成時，只從該筆往後失效；
