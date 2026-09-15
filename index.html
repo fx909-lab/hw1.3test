@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>作業點名簿＋ v2.0 History29｜類別日期學期隔離修正版</title>
+<title>作業點名簿＋ v2.0 History30｜歷史學期辨識修正版</title>
 <style>
 :root{--bg:#f4f6f8;--card:#fff;--line:#dfe5ea;--text:#2f3b46;--muted:#8794a1;--blue:#4da3ff;--red:#ef5350;--yellow:#f6c945;--green:#59bf76;--orange:#f79a49}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif}
@@ -57,6 +57,13 @@ button,input{font:inherit}button{cursor:pointer}.topbar{background:#fff;border-b
 .all-ok-cell{padding:0!important;vertical-align:middle!important;background:rgba(248,250,252,.55)}
 .all-ok-stamp{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:22px;padding:0 5px;border:1.5px solid #8aa79a;border-radius:5px;color:#6f9181;font-size:11px;font-weight:900;letter-spacing:.5px;transform:rotate(-5deg);opacity:.72;background:rgba(255,255,255,.75)}
 
+/* History30：歷史紀錄跨學期視覺辨識。現在學期維持原色；舊學期以淡底色＋學期標籤＋分界線呈現。 */
+.history-semester-past-a{background:#f6f4ef!important}
+.history-semester-past-b{background:#f1f5f4!important}
+.history-semester-boundary{border-left:3px solid #a9b3bd!important}
+.history-semester-tag{display:block;width:max-content;max-width:100%;margin:0 auto 5px;padding:2px 7px;border-radius:999px;background:#e9edf1;color:#4b5563;font-size:10.5px;font-weight:800;line-height:1.35;white-space:nowrap}
+.history-semester-current .history-semester-tag{background:#e7f0fb;color:#315b83}
+@media(max-width:760px){.history-semester-tag{font-size:10px;padding:2px 6px}.history-semester-boundary{border-left-width:3px!important}}
 .history-table-wrap{overflow-x:auto;overflow-y:visible;max-height:none;border:1px solid var(--line);border-radius:12px}
 .history-table{width:max-content;min-width:100%;table-layout:auto}
 .history-table th,.history-table td{padding:3px 5px;min-width:56px;height:32px}
@@ -1901,7 +1908,7 @@ html.mobile-ux .cat-data-clear-back{white-space:nowrap!important;}
 </style>
 </head>
 <body>
-<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 History29</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
+<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 History30</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
 <div id="sandboxNotice" style="margin:10px auto 0;max-width:1180px;padding:8px 12px;border:1px solid #d5a72c;border-radius:10px;background:#fff8dc;color:#6b5314;font-size:13px;font-weight:700;box-sizing:border-box">🧪 r8 Sandbox 測試資料隔離模式｜不讀寫正式版 localStorage／Firestore 文件</div>
 <section id="cloudPanel" class="cloud-panel" aria-hidden="true">
   <div class="cloud-panel-head">
@@ -4180,6 +4187,15 @@ function commitHistoryBatchDelete(){
 }
 function renderTable(){
  const c=currentCat(),cols=state.history.filter(h=>h.catId===c.id).sort(compareHistory);
+ // History30：依學期分組做視覺辨識；不影響資料、完成判定或封存狀態。
+ const currentSemesterKey=currentSemesterInfo()?.key||'';
+ const semesterVisual=new Map();let oldSemesterIndex=0,lastSemesterKey='';
+ cols.forEach((h,i)=>{
+   const info=semesterInfoFromDate(h.date),key=info?.key||'';
+   if(!semesterVisual.has(key)){semesterVisual.set(key,key===currentSemesterKey?'current':(`past-${oldSemesterIndex++%2?'b':'a'}`))}
+   h.__historySemesterUI={info,key,visual:semesterVisual.get(key),boundary:i===0||key!==lastSemesterKey};
+   lastSemesterKey=key;
+ });
  if(historyBatchDeleteMode){const valid=new Set(cols.map(h=>String(h.id)));for(const id of [...historyBatchDeleteIds])if(!valid.has(id))historyBatchDeleteIds.delete(id);}
  const headRow=document.createElement('tr');
  const corner=document.createElement('th');corner.className='diag-head';
@@ -4187,7 +4203,13 @@ function renderTable(){
  const seat=document.createElement('span');seat.className='diag-seat';seat.textContent='座號';
  corner.append(prog,seat);headRow.appendChild(corner);
  cols.forEach((h,i)=>{
-   const th=document.createElement('th');if(i===0)th.className='latest-col';
+   const th=document.createElement('th');if(i===0)th.classList.add('latest-col');
+   const semUI=h.__historySemesterUI||{};
+   if(semUI.visual==='current')th.classList.add('history-semester-current');
+   else if(semUI.visual==='past-a')th.classList.add('history-semester-past-a');
+   else if(semUI.visual==='past-b')th.classList.add('history-semester-past-b');
+   if(semUI.boundary)th.classList.add('history-semester-boundary');
+   if(semUI.boundary&&semUI.info){const tag=document.createElement('div');tag.className='history-semester-tag';tag.textContent=semUI.info.label;th.appendChild(tag)}
    if(historyBatchDeleteMode){const pick=document.createElement('label');pick.className='history-batch-check';pick.title='選取這筆歷史紀錄';const cb=document.createElement('input');cb.type='checkbox';cb.checked=historyBatchDeleteIds.has(String(h.id));cb.addEventListener('click',e=>{e.stopPropagation();toggleHistoryBatchId(h.id)});pick.addEventListener('click',e=>e.stopPropagation());pick.appendChild(cb);th.appendChild(pick);if(cb.checked)th.classList.add('history-batch-selected')}
    const progressDiv=document.createElement('div');progressDiv.className='history-progress-box';progressDiv.innerHTML=progressHTML(h);
    const dateDiv=document.createElement('div');dateDiv.textContent=h.date;
@@ -4261,13 +4283,15 @@ function renderTable(){
  for(let n=1;n<=state.studentCount;n++){
    let cells='';
    for(let i=0;i<cols.length;i++){
-     const h=cols[i],latest=i===0?'latest-col':'';
-     if(isWholeClassOK(h)){if(n===1)cells+=`<td class="${latest} all-ok-cell" rowspan="${state.studentCount}"><span class="all-ok-stamp">OK</span></td>`}
+     const h=cols[i],latest=i===0?'latest-col':'',semUI=h.__historySemesterUI||{};
+     const semClass=semUI.visual==='current'?'history-semester-current':semUI.visual==='past-a'?'history-semester-past-a':semUI.visual==='past-b'?'history-semester-past-b':'';
+     const boundaryClass=semUI.boundary?'history-semester-boundary':'';
+     if(isWholeClassOK(h)){if(n===1)cells+=`<td class="${latest} ${semClass} ${boundaryClass} all-ok-cell" rowspan="${state.studentCount}"><span class="all-ok-stamp">OK</span></td>`}
      else{
        const st=h.statuses[n]||'red';
        const editable=!isReturnSlipCategory(c)&&historyOkEditId===h.id&&['red','yellow','green','ring','orange'].includes(st);
        const pending=editable&&historyOkPending.has(n);
-       cells+=`<td class="${latest} ${editable?'ok-editable':''} ${pending?'pending-toggle':''}"${editable?` data-history-id="${esc(h.id)}" data-seat="${n}"`:''}>${historyStatusIcon(h,n)}</td>`;
+       cells+=`<td class="${latest} ${semClass} ${boundaryClass} ${editable?'ok-editable':''} ${pending?'pending-toggle':''}"${editable?` data-history-id="${esc(h.id)}" data-seat="${n}"`:''}>${historyStatusIcon(h,n)}</td>`;
      }
    }
    rows+=`<tr><td>${n}</td>${cells}</tr>`;
