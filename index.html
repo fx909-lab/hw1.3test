@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>作業點名簿＋ v2.0 History32｜學期管理版面與操作修正版</title>
+<title>作業點名簿＋ v2.0 History33｜學期查看與模式互斥修正版</title>
 <style>
 :root{--bg:#f4f6f8;--card:#fff;--line:#dfe5ea;--text:#2f3b46;--muted:#8794a1;--blue:#4da3ff;--red:#ef5350;--yellow:#f6c945;--green:#59bf76;--orange:#f79a49}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif}
@@ -65,6 +65,15 @@ button,input{font:inherit}button{cursor:pointer}.topbar{background:#fff;border-b
 .history-semester-current .history-semester-tag{background:#e7f0fb;color:#315b83}
 @media(max-width:760px){.history-semester-tag{font-size:10px;padding:2px 6px}.history-semester-boundary{border-left-width:3px!important}}
 /* History32：學期管理改為清單式單選，模式按鈕互斥，查看封存學期時可自由切換類別。 */
+/* History33：模式按鈕真正互斥；學期操作按鈕提高辨識度；查看指定學期時類別日期同步切換。 */
+.mode-hidden{display:none!important}
+.semester-manager-op .btn{background:#fff!important;border:1.5px solid #aeb8c2!important;box-shadow:0 1px 2px rgba(15,23,42,.07)!important;color:#334155!important}
+.semester-manager-op .btn:hover{border-color:#8795a3!important;background:#f8fafc!important}
+.semester-manager-op .btn.danger{background:#fff8f7!important;border-color:#d99a96!important;color:#9f3f3a!important}
+.semester-manager-op .btn:disabled{background:#f1f3f5!important;border-color:#d7dce1!important;color:#9aa3ad!important;box-shadow:none!important}
+.semester-manager-date-line{display:flex;align-items:baseline;gap:5px;flex-wrap:wrap;margin-top:2px}
+.semester-manager-date-line .semester-manager-date{margin-top:0}
+.semester-manager-badge.current{color:#c43d3d!important}
 .category-head-actions .mode-hidden{display:none!important}
 .semester-manager{display:flex;flex-direction:column;gap:10px;width:100%;box-sizing:border-box}
 .semester-manager-title{font-size:14px;font-weight:900;color:#374151;margin:1px 0 0}
@@ -1932,7 +1941,7 @@ html.mobile-ux .cat-data-clear-back{white-space:nowrap!important;}
 </style>
 </head>
 <body>
-<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 History32</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
+<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 History33</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
 <div id="sandboxNotice" style="margin:10px auto 0;max-width:1180px;padding:8px 12px;border:1px solid #d5a72c;border-radius:10px;background:#fff8dc;color:#6b5314;font-size:13px;font-weight:700;box-sizing:border-box">🧪 r8 Sandbox 測試資料隔離模式｜不讀寫正式版 localStorage／Firestore 文件</div>
 <section id="cloudPanel" class="cloud-panel" aria-hidden="true">
   <div class="cloud-panel-head">
@@ -2579,7 +2588,8 @@ function renderCats(){
 
  if(!categoryEditMode){
    state.categories.forEach(c=>{
-     const h=latestRecord(c.id,currentSemesterInfo()?.key||'');
+     const displaySemesterKey=historySemesterViewKey||(currentSemesterInfo()?.key||'');
+     const h=latestRecord(c.id,displaySemesterKey);
      const btn=document.createElement('button');
      btn.type='button';
      btn.className=`cat-item ${c.id===state.currentCategory?'active':''}`;
@@ -2952,11 +2962,12 @@ function renderSemesterManager(box){
    const row=document.createElement('label');row.className='semester-manager-item'+(x.key===semesterManagerSelectedKey?' selected':'');
    const cb=document.createElement('input');cb.type='checkbox';cb.className='semester-manager-check';cb.checked=x.key===semesterManagerSelectedKey;cb.setAttribute('aria-label',`選擇 ${x.label}`);
    const main=document.createElement('div');main.className='semester-manager-main';
-   const line=document.createElement('div');line.className='semester-manager-line';line.append(document.createTextNode(`${x.label}｜${x.count}筆`));
-   if(x.key===cur?.key){const b=document.createElement('span');b.className='semester-manager-badge current';b.textContent='【目前】';line.appendChild(b)}
-   if(archived.has(x.key)){const b=document.createElement('span');b.className='semester-manager-badge archived';b.textContent='【封存】';line.appendChild(b)}
-   const date=document.createElement('div');date.className='semester-manager-date';date.textContent=`${x.start.replaceAll('-','.')}～${x.end.replaceAll('-','.')}`;
-   main.append(line,date);row.append(cb,main);
+   const line=document.createElement('div');line.className='semester-manager-line';line.textContent=`${x.label}｜${x.count}筆`;
+   const dateLine=document.createElement('div');dateLine.className='semester-manager-date-line';
+   const date=document.createElement('span');date.className='semester-manager-date';date.textContent=`${x.start.replaceAll('-','.')}～${x.end.replaceAll('-','.')}`;dateLine.appendChild(date);
+   if(x.key===cur?.key){const b=document.createElement('span');b.className='semester-manager-badge current';b.textContent='【目前】';dateLine.appendChild(b)}
+   if(archived.has(x.key)){const b=document.createElement('span');b.className='semester-manager-badge archived';b.textContent='【封存】';dateLine.appendChild(b)}
+   main.append(line,dateLine);row.append(cb,main);
    const choose=()=>{semesterManagerSelectedKey=x.key;wrap.querySelector('.semester-manager-confirm')?.remove();renderCats()};
    cb.addEventListener('change',e=>{e.preventDefault();choose()});row.addEventListener('click',e=>{if(e.target!==cb){e.preventDefault();choose()}});
    list.appendChild(row);
