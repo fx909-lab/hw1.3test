@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>作業點名簿＋ v2.0 History36｜學期模式回歸收斂版</title>
+<title>作業點名簿＋ v2.0 History37｜學期模式回歸收斂版</title>
 <style>
 :root{--bg:#f4f6f8;--card:#fff;--line:#dfe5ea;--text:#2f3b46;--muted:#8794a1;--blue:#4da3ff;--red:#ef5350;--yellow:#f6c945;--green:#59bf76;--orange:#f79a49}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif}
@@ -1946,9 +1946,19 @@ html.mobile-ux .cat-data-clear-back{white-space:nowrap!important;}
  html.mobile-ux .semester-action-help{font-size:11.5px!important}
 }
 </style>
+
+<style id="history37-mode-button-final-css">
+/* History37：三個模式鍵與離開鍵文字垂直置中；hidden 為模式互斥的最終保險。 */
+#categoryEditBtn,#categoryDataClearBtn,#categorySemesterBtn{
+  display:inline-flex;align-items:center!important;justify-content:center!important;
+  line-height:1!important;vertical-align:middle!important;box-sizing:border-box!important;
+}
+#categoryEditBtn[hidden],#categoryDataClearBtn[hidden],#categorySemesterBtn[hidden]{display:none!important}
+.semester-action-item>.semester-manager-confirm{margin-top:7px!important;width:100%!important;box-sizing:border-box!important}
+</style>
 </head>
 <body>
-<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 History36</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
+<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 History37</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
 <div id="sandboxNotice" style="margin:10px auto 0;max-width:1180px;padding:8px 12px;border:1px solid #d5a72c;border-radius:10px;background:#fff8dc;color:#6b5314;font-size:13px;font-weight:700;box-sizing:border-box">🧪 r8 Sandbox 測試資料隔離模式｜不讀寫正式版 localStorage／Firestore 文件</div>
 <section id="cloudPanel" class="cloud-panel" aria-hidden="true">
   <div class="cloud-panel-head">
@@ -2877,7 +2887,7 @@ function syncCategoryModeButtons(){
  const inSemesterView=!!historySemesterViewKey;
  // History36：舊 CSS 有 display:inline-flex!important，普通 style.display='none' 會被蓋掉。
  // 統一用 inline !important 控制模式互斥，確保任何模式只留下自己的完成／離開鍵。
- const setVisible=(el,visible)=>{if(!el)return;el.style.setProperty('display',visible?'inline-flex':'none','important')};
+ const setVisible=(el,visible)=>{if(!el)return;el.hidden=!visible;el.style.setProperty('display',visible?'inline-flex':'none','important')};
  if(edit){
    edit.textContent=categoryEditMode?'完成':'編輯';
    edit.disabled=false;
@@ -3004,7 +3014,18 @@ function renderSemesterManager(box){
  archive.addEventListener('click',()=>{const key=selectedKey;if(key===cur?.key)return;const set=archivedSemesterSet();if(set.has(key))set.delete(key);else set.add(key);state.archivedSemesters=[...set];save();renderAll();categorySemesterMode=true;syncCategoryModeButtons();renderCats()});
  exportBtn.addEventListener('click',()=>exportSemesterData(selectedKey));
  view.addEventListener('click',()=>{historySemesterViewKey=selectedKey;categorySemesterMode=false;categoryDataClearMode=false;categoryEditMode=false;syncCategoryModeButtons();renderCats();renderTable()});
- del.onclick=(e)=>{e.preventDefault();e.stopPropagation();const info=semesters.find(v=>v.key===selectedKey);if(!info)return false;showSemesterManagerDeleteConfirm(wrap,info,actions);return false;};
+ del.addEventListener('click',(e)=>{
+   e.preventDefault();e.stopPropagation();
+   delItem.querySelector('.semester-manager-confirm')?.remove();
+   const info=semesters.find(v=>v.key===selectedKey);if(!info)return;
+   const records=historyForSemester(info.key);if(!records.length){alert('這個學期目前已沒有歷史資料。');return}
+   const confirmBox=document.createElement('div');confirmBox.className='semester-manager-confirm';
+   const msg=document.createElement('div');msg.textContent=`即將永久清除 ${info.label} 的 ${records.length} 筆歷史紀錄。類別、學生數與目前設定會保留；刪除後無法復原。`;
+   const confirmActions=document.createElement('div');confirmActions.className='semester-manager-confirm-actions';
+   const back=document.createElement('button');back.type='button';back.className='btn';back.textContent='返回選擇';back.addEventListener('click',(ev)=>{ev.preventDefault();ev.stopPropagation();confirmBox.remove()});
+   const yes=document.createElement('button');yes.type='button';yes.className='btn danger';yes.textContent=`確認永久清除 ${records.length} 筆`;yes.addEventListener('click',(ev)=>{ev.preventDefault();ev.stopPropagation();const set=archivedSemesterSet();set.delete(info.key);state.archivedSemesters=[...set];if(historySemesterViewKey===info.key)historySemesterViewKey='';commitSemesterClear(info.key);categorySemesterMode=true;syncCategoryModeButtons();renderCats()});
+   confirmActions.append(back,yes);confirmBox.append(msg,confirmActions);delItem.appendChild(confirmBox);
+ });
  actions.append(viewItem,exportItem,archiveItem,delItem);wrap.append(list,actions);box.appendChild(wrap);drawOptions();refreshActions();
 }
 async function exportSemesterData(key){
