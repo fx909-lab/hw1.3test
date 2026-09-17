@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>作業點名簿＋ v2.0 History34｜學期管理回歸修正版</title>
+<title>作業點名簿＋ v2.0 History35｜學期模式回歸收斂版</title>
 <style>
 :root{--bg:#f4f6f8;--card:#fff;--line:#dfe5ea;--text:#2f3b46;--muted:#8794a1;--blue:#4da3ff;--red:#ef5350;--yellow:#f6c945;--green:#59bf76;--orange:#f79a49}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif}
@@ -1948,7 +1948,7 @@ html.mobile-ux .cat-data-clear-back{white-space:nowrap!important;}
 </style>
 </head>
 <body>
-<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 History34</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
+<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 History35</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
 <div id="sandboxNotice" style="margin:10px auto 0;max-width:1180px;padding:8px 12px;border:1px solid #d5a72c;border-radius:10px;background:#fff8dc;color:#6b5314;font-size:13px;font-weight:700;box-sizing:border-box">🧪 r8 Sandbox 測試資料隔離模式｜不讀寫正式版 localStorage／Firestore 文件</div>
 <section id="cloudPanel" class="cloud-panel" aria-hidden="true">
   <div class="cloud-panel-head">
@@ -2594,7 +2594,7 @@ function renderCats(){
 
  if(!categoryEditMode){
    state.categories.forEach(c=>{
-     const h=latestRecord(c.id,currentSemesterInfo()?.key||'');
+     const h=latestRecord(c.id,historySemesterViewKey||(currentSemesterInfo()?.key||''));
      const btn=document.createElement('button');
      btn.type='button';
      btn.className=`cat-item ${c.id===state.currentCategory?'active':''}`;
@@ -2874,9 +2874,25 @@ function selectCategory(id){
 function categoryHistoryCount(id){return state.history.reduce((n,h)=>n+(String(h.catId)===String(id)?1:0),0)}
 function syncCategoryModeButtons(){
  const edit=$('categoryEditBtn'),clear=$('categoryDataClearBtn'),semester=$('categorySemesterBtn');
- if(edit){edit.textContent=categoryEditMode?'完成':'編輯';edit.disabled=categoryDataClearMode||categorySemesterMode||!!historySemesterViewKey;edit.style.display=(categorySemesterMode||!!historySemesterViewKey)?'none':''}
- if(clear){clear.classList.toggle('active',categoryDataClearMode);clear.textContent=categoryDataClearMode?'離開清除':'清除';clear.disabled=categoryEditMode||categorySemesterMode||!!historySemesterViewKey;clear.style.display=(categorySemesterMode||!!historySemesterViewKey)?'none':''}
- if(semester){semester.classList.toggle('active',categorySemesterMode||!!historySemesterViewKey);semester.textContent=historySemesterViewKey?'離開學期紀錄':(categorySemesterMode?'離開學期':'學期');semester.disabled=categoryEditMode||categoryDataClearMode;semester.style.display=''}
+ const inSemesterView=!!historySemesterViewKey;
+ // 模式互斥：進入任一模式後，只保留該模式自己的離開／完成鍵，避免誤觸其他模式。
+ if(edit){
+   edit.textContent=categoryEditMode?'完成':'編輯';
+   edit.disabled=false;
+   edit.style.display=(categoryDataClearMode||categorySemesterMode||inSemesterView)?'none':'';
+ }
+ if(clear){
+   clear.classList.toggle('active',categoryDataClearMode);
+   clear.textContent=categoryDataClearMode?'離開清除':'清除';
+   clear.disabled=false;
+   clear.style.display=(categoryEditMode||categorySemesterMode||inSemesterView)?'none':'';
+ }
+ if(semester){
+   semester.classList.toggle('active',categorySemesterMode||inSemesterView);
+   semester.textContent=inSemesterView?'離開學期紀錄':(categorySemesterMode?'離開學期':'學期');
+   semester.disabled=false;
+   semester.style.display=(categoryEditMode||categoryDataClearMode)?'none':'';
+ }
 }
 function renderCategoryDataClearRows(box){
  // 進入清除模式時，有資料的類別預設全選；沒有資料者保留可辨識但不可選。
@@ -2986,7 +3002,7 @@ function renderSemesterManager(box){
  archive.addEventListener('click',()=>{const key=selectedKey;if(key===cur?.key)return;const set=archivedSemesterSet();if(set.has(key))set.delete(key);else set.add(key);state.archivedSemesters=[...set];save();renderAll();categorySemesterMode=true;syncCategoryModeButtons();renderCats()});
  exportBtn.addEventListener('click',()=>exportSemesterData(selectedKey));
  view.addEventListener('click',()=>{historySemesterViewKey=selectedKey;categorySemesterMode=false;categoryDataClearMode=false;categoryEditMode=false;syncCategoryModeButtons();renderCats();renderTable()});
- del.addEventListener('click',()=>{const info=semesters.find(v=>v.key===selectedKey);if(!info)return;showSemesterManagerDeleteConfirm(wrap,info);const confirm=wrap.querySelector('.semester-manager-confirm');if(confirm)confirm.scrollIntoView({behavior:'smooth',block:'nearest'})});
+ del.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();const info=semesters.find(v=>v.key===selectedKey);if(!info)return;showSemesterManagerDeleteConfirm(wrap,info,delItem)});
  actions.append(viewItem,exportItem,archiveItem,delItem);wrap.append(list,actions);box.appendChild(wrap);drawOptions();refreshActions();
 }
 async function exportSemesterData(key){
@@ -2995,12 +3011,12 @@ async function exportSemesterData(key){
  const payload=JSON.stringify(safe,null,2),filename=`作業點名簿＋_${info.label.replace(/\s+/g,'')}_備份_${TODAY.replace(/-/g,'')}.json`;
  try{if(typeof window.showSaveFilePicker==='function'){const handle=await window.showSaveFilePicker({suggestedName:filename,types:[{description:'JSON 學期備份檔',accept:{'application/json':['.json']}}]});const writable=await handle.createWritable();await writable.write(payload);await writable.close();return}const blob=new Blob([payload],{type:'application/json;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=filename;a.style.display='none';document.body.appendChild(a);a.click();setTimeout(()=>{a.remove();URL.revokeObjectURL(url)},1000)}catch(err){if(err?.name!=='AbortError'){console.error(err);alert('匯出學期備份失敗，請再試一次。')}}
 }
-function showSemesterManagerDeleteConfirm(wrap,info){
+function showSemesterManagerDeleteConfirm(wrap,info,anchor=null){
  if(!info)return;wrap.querySelector('.semester-manager-confirm')?.remove();const records=historyForSemester(info.key);if(!records.length)return alert('這個學期目前已沒有歷史資料。');
  const box=document.createElement('div');box.className='semester-manager-confirm';const msg=document.createElement('div');msg.textContent=`即將永久清除 ${info.label} 的 ${records.length} 筆歷史紀錄。類別、學生數與目前設定會保留；刪除後無法復原。`;
- const acts=document.createElement('div');acts.className='semester-manager-confirm-actions',back=document.createElement('button'),yes=document.createElement('button');back.type=yes.type='button';back.className='btn';back.textContent='返回選擇';yes.className='btn danger';yes.textContent=`確認永久清除 ${records.length} 筆`;back.addEventListener('click',()=>box.remove());yes.addEventListener('click',()=>{const set=archivedSemesterSet();set.delete(info.key);state.archivedSemesters=[...set];if(historySemesterViewKey===info.key)historySemesterViewKey='';commitSemesterClear(info.key);categorySemesterMode=true;syncCategoryModeButtons();renderCats()});acts.append(back,yes);box.append(msg,acts);wrap.appendChild(box);
+ const acts=document.createElement('div');acts.className='semester-manager-confirm-actions',back=document.createElement('button'),yes=document.createElement('button');back.type=yes.type='button';back.className='btn';back.textContent='返回選擇';yes.className='btn danger';yes.textContent=`確認永久清除 ${records.length} 筆`;back.addEventListener('click',()=>box.remove());yes.addEventListener('click',()=>{const set=archivedSemesterSet();set.delete(info.key);state.archivedSemesters=[...set];if(historySemesterViewKey===info.key)historySemesterViewKey='';commitSemesterClear(info.key);categorySemesterMode=true;syncCategoryModeButtons();renderCats()});acts.append(back,yes);box.append(msg,acts);if(anchor&&anchor.parentNode)anchor.insertAdjacentElement('afterend',box);else wrap.appendChild(box);box.scrollIntoView({block:'nearest'});
 }
-function toggleSemesterManager(){if(historySemesterViewKey){historySemesterViewKey='';categorySemesterMode=false;syncCategoryModeButtons();renderCats();renderTable();return}categorySemesterMode=!categorySemesterMode;if(categorySemesterMode){categoryDataClearMode=false;categoryEditMode=false}syncCategoryModeButtons();renderCats();renderTable()}
+function toggleSemesterManager(){if(historySemesterViewKey){historySemesterViewKey='';categorySemesterMode=true;categoryDataClearMode=false;categoryEditMode=false;syncCategoryModeButtons();renderCats();renderTable();return}categorySemesterMode=!categorySemesterMode;if(categorySemesterMode){categoryDataClearMode=false;categoryEditMode=false}syncCategoryModeButtons();renderCats();renderTable()}
 function enterCategoryDataClearMode(){
  if(categoryEditMode)return;
  categoryDataClearMode=true;categoryDataClearIds.clear();
