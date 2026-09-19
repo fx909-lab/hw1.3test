@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>作業點名簿＋ v2.0 History38｜封測前介面收尾版</title>
+<title>作業點名簿＋ v2.0 History39｜手機介面最終收尾版</title>
 <style>
 :root{--bg:#f4f6f8;--card:#fff;--line:#dfe5ea;--text:#2f3b46;--muted:#8794a1;--blue:#4da3ff;--red:#ef5350;--yellow:#f6c945;--green:#59bf76;--orange:#f79a49}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif}
@@ -1956,9 +1956,34 @@ html.mobile-ux .cat-data-clear-back{white-space:nowrap!important;}
 #categoryEditBtn[hidden],#categoryDataClearBtn[hidden],#categorySemesterBtn[hidden]{display:none!important}
 .semester-action-item>.semester-manager-confirm{margin-top:7px!important;width:100%!important;box-sizing:border-box!important}
 </style>
+
+<style id="history39-mobile-final-polish-css">
+/* History39：手機介面最終收尾。只修按鈕文字垂直置中、模式時隱藏目前類別列、三模式鍵等距。 */
+@media(max-width:760px){
+  html.mobile-ux #mobileCategoryToggleBtn,
+  html.mobile-ux #historyBatchDeleteBtn,
+  html.mobile-ux #historyCollapseBtn{
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    line-height:1!important;
+    vertical-align:middle!important;
+    box-sizing:border-box!important;
+  }
+  html.mobile-ux .sidebar .side-head .category-head-actions{
+    gap:6px!important;
+  }
+  html.mobile-ux #categoryEditBtn,
+  html.mobile-ux #categoryDataClearBtn,
+  html.mobile-ux #categorySemesterBtn{
+    margin:0!important;
+  }
+  html.mobile-ux #mobileCategoryHead.mode-hidden{display:none!important;}
+}
+</style>
 </head>
 <body>
-<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 History38</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
+<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 History39</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
 <div id="sandboxNotice" style="margin:10px auto 0;max-width:1180px;padding:8px 12px;border:1px solid #d5a72c;border-radius:10px;background:#fff8dc;color:#6b5314;font-size:13px;font-weight:700;box-sizing:border-box">🧪 r8 Sandbox 測試資料隔離模式｜不讀寫正式版 localStorage／Firestore 文件</div>
 <section id="cloudPanel" class="cloud-panel" aria-hidden="true">
   <div class="cloud-panel-head">
@@ -2904,6 +2929,14 @@ function syncCategoryModeButtons(){
    semester.textContent=inSemesterView?'離開學期紀錄':(categorySemesterMode?'離開學期':'學期');
    semester.disabled=false;
    setVisible(semester,categorySemesterMode||inSemesterView||(!categoryEditMode&&!categoryDataClearMode));
+ }
+ // History39：手機進入編輯／清除／學期管理時，該模式不需要切換目前類別，隱藏整排以節省高度。
+ // 「查看學期紀錄」仍需切換不同類別，因此 inSemesterView 時必須保留。
+ const mobileHead=$('mobileCategoryHead');
+ if(mobileHead){
+   const hideMobileCategoryHead=!inSemesterView&&(categoryEditMode||categoryDataClearMode||categorySemesterMode);
+   mobileHead.classList.toggle('mode-hidden',hideMobileCategoryHead);
+   mobileHead.setAttribute('aria-hidden',hideMobileCategoryHead?'true':'false');
  }
 }
 function renderCategoryDataClearRows(box){
