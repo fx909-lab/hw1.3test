@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>作業點名簿＋ v2.0 History50｜手機離開鍵內容寬度修正版</title>
+<title>作業點名簿＋ v2.0 History51｜手機模式鍵順序與寬度微調版</title>
 <style>
 :root{--bg:#f4f6f8;--card:#fff;--line:#dfe5ea;--text:#2f3b46;--muted:#8794a1;--blue:#4da3ff;--red:#ef5350;--yellow:#f6c945;--green:#59bf76;--orange:#f79a49}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif}
@@ -1982,9 +1982,11 @@ html.mobile-ux .cat-data-clear-back{white-space:nowrap!important;}
 }
 </style>
 
-<style id="history45-mobile-mode-root-fix-css">
-/* History45：從 History39 穩定版修正根因。只在手機一般模式讓三顆鍵同容器、同尺寸、同 gap；
-   各模式只剩單一完成／離開鍵時恢復自然寬度，避免「離開學期／離開清除」被擠窄。 */
+<style id="history51-mobile-mode-layout-css">
+/* History51：回溯 History39→45 後修正 regression。
+   History45 用 :only-child 判斷模式單鍵，但隱藏的兄弟按鈕仍存在 DOM，故條件永遠不成立；
+   改由 syncCategoryModeButtons 明確標記 single-mode。一般模式維持 History51 的 58px 三鍵等距，
+   模式內單鍵恢復 History39 的自然內容寬度。 */
 @media(max-width:760px){
   html.mobile-ux .sidebar .side-head .category-head-actions{
     display:flex!important;align-items:center!important;justify-content:flex-end!important;
@@ -1997,83 +1999,27 @@ html.mobile-ux .cat-data-clear-back{white-space:nowrap!important;}
     display:inline-flex!important;align-items:center!important;justify-content:center!important;
     height:36px!important;min-height:36px!important;box-sizing:border-box!important;line-height:1!important;
   }
-  /* 一般模式三顆同寬，兩段 gap 由同一父容器精確控制。 */
-  html.mobile-ux .sidebar .side-head .category-head-actions > #categoryEditBtn:not([hidden]):not(:only-child),
-  html.mobile-ux .sidebar .side-head .category-head-actions > #categoryDataClearBtn:not([hidden]):not(:only-child),
-  html.mobile-ux .sidebar .side-head .category-head-actions > #categorySemesterBtn:not([hidden]):not(:only-child){
+  /* 一般模式：保留已實測 OK 的三鍵尺寸與間距。 */
+  html.mobile-ux .sidebar .side-head .category-head-actions:not(.single-mode) > #categoryEditBtn:not([hidden]),
+  html.mobile-ux .sidebar .side-head .category-head-actions:not(.single-mode) > #categoryDataClearBtn:not([hidden]),
+  html.mobile-ux .sidebar .side-head .category-head-actions:not(.single-mode) > #categorySemesterBtn:not([hidden]){
     width:58px!important;min-width:58px!important;max-width:58px!important;padding:6px 8px!important;flex:0 0 58px!important;
   }
-  /* 模式內只剩一顆時，文字多長就給足寬度，不套 58px。 */
-  html.mobile-ux .sidebar .side-head .category-head-actions > .btn:only-child{
-    width:auto!important;min-width:max-content!important;max-width:none!important;padding:6px 10px!important;flex:0 0 auto!important;white-space:nowrap!important;
+  /* 編輯／清除／學期／舊學期檢視：回到 History39 的自然內容寬度，不再被 58px 壓住。 */
+  html.mobile-ux .sidebar .side-head .category-head-actions.single-mode > .btn:not([hidden]){
+    width:auto!important;min-width:0!important;max-width:none!important;
+    padding:6px 10px!important;flex:0 0 auto!important;white-space:nowrap!important;
+  }
+  html.mobile-ux .sidebar .side-head .category-head-actions.single-mode > #categorySemesterBtn.semester-view-exit:not([hidden]){
+    padding-left:12px!important;padding-right:12px!important;
   }
 }
 </style>
 
-<style id="history46-mobile-order-width-polish-css">
-/* History46：保留 History45 的穩定定位，只調手機一般模式順序與三種離開鍵的舒適寬度。 */
-@media(max-width:760px){
-  html.mobile-ux .sidebar .side-head .category-head-actions > #categoryDataClearBtn:only-child{
-    min-width:88px!important;width:88px!important;max-width:none!important;flex:0 0 88px!important;padding-left:12px!important;padding-right:12px!important;white-space:nowrap!important;
-  }
-  html.mobile-ux .sidebar .side-head .category-head-actions > #categorySemesterBtn:only-child{
-    min-width:88px!important;width:88px!important;max-width:none!important;flex:0 0 88px!important;padding-left:12px!important;padding-right:12px!important;white-space:nowrap!important;
-  }
-  html.mobile-ux .sidebar .side-head .category-head-actions > #categorySemesterBtn.semester-view-exit:only-child{
-    min-width:118px!important;width:118px!important;max-width:none!important;flex:0 0 118px!important;padding-left:13px!important;padding-right:13px!important;white-space:nowrap!important;
-  }
-}
-</style>
 
-<style id="history47-mobile-exit-width-final-css">
-/* History47：只增加手機三種離開鍵的水平留白；不改 History46 已確認的順序、位置、高度與模式邏輯。 */
-@media(max-width:760px){
-  html.mobile-ux .sidebar .side-head .category-head-actions > #categoryDataClearBtn:only-child{
-    min-width:100px!important;width:100px!important;max-width:none!important;flex:0 0 100px!important;
-    padding-left:16px!important;padding-right:16px!important;white-space:nowrap!important;
-  }
-  html.mobile-ux .sidebar .side-head .category-head-actions > #categorySemesterBtn:only-child{
-    min-width:100px!important;width:100px!important;max-width:none!important;flex:0 0 100px!important;
-    padding-left:16px!important;padding-right:16px!important;white-space:nowrap!important;
-  }
-  html.mobile-ux .sidebar .side-head .category-head-actions > #categorySemesterBtn.semester-view-exit:only-child{
-    min-width:156px!important;width:156px!important;max-width:none!important;flex:0 0 156px!important;
-    padding-left:20px!important;padding-right:20px!important;white-space:nowrap!important;
-  }
-}
-</style>
-
-<style id="history48-mobile-exit-real-width-css">
-/* History48：不用 :only-child（hidden 兄弟仍算 child），改依 syncCategoryModeButtons 寫入的模式 class 精確控制。 */
-@media(max-width:760px){
-  html.mobile-ux .sidebar .side-head .category-head-actions.mode-clear-only > #categoryDataClearBtn{
-    width:112px!important;min-width:112px!important;max-width:112px!important;flex:0 0 112px!important;
-    padding-left:18px!important;padding-right:18px!important;white-space:nowrap!important;
-  }
-  html.mobile-ux .sidebar .side-head .category-head-actions.mode-semester-only > #categorySemesterBtn{
-    width:112px!important;min-width:112px!important;max-width:112px!important;flex:0 0 112px!important;
-    padding-left:18px!important;padding-right:18px!important;white-space:nowrap!important;
-  }
-  html.mobile-ux .sidebar .side-head .category-head-actions.mode-semester-view-only > #categorySemesterBtn{
-    width:176px!important;min-width:176px!important;max-width:176px!important;flex:0 0 176px!important;
-    padding-left:22px!important;padding-right:22px!important;white-space:nowrap!important;
-  }
-}
-</style>
-
-<style id="history50-mobile-exit-intrinsic-width-css">
-/* History50：撤銷 History46–48 對離開鍵的固定 width；由加寬後的實際文字內容決定自然寬度。 */
-@media(max-width:760px){
-  html.mobile-ux .sidebar .side-head .category-head-actions.mode-clear-only > #categoryDataClearBtn,
-  html.mobile-ux .sidebar .side-head .category-head-actions.mode-semester-only > #categorySemesterBtn,
-  html.mobile-ux .sidebar .side-head .category-head-actions.mode-semester-view-only > #categorySemesterBtn{
-    width:auto!important;min-width:0!important;max-width:none!important;flex:0 0 auto!important;white-space:pre!important;
-  }
-}
-</style>
 </head>
 <body>
-<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 History50</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
+<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 History51</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
 <div id="sandboxNotice" style="margin:10px auto 0;max-width:1180px;padding:8px 12px;border:1px solid #d5a72c;border-radius:10px;background:#fff8dc;color:#6b5314;font-size:13px;font-weight:700;box-sizing:border-box">🧪 r8 Sandbox 測試資料隔離模式｜不讀寫正式版 localStorage／Firestore 文件</div>
 <section id="cloudPanel" class="cloud-panel" aria-hidden="true">
   <div class="cloud-panel-head">
@@ -2608,7 +2554,7 @@ function setupMobileTopbar(){
     舊 setupMobileTopbar 會把它搬到 side-head 外層，造成一般模式永遠無法等距。 */
  if(categoryActions){
    const categoryClear=$('categoryDataClearBtn'),categorySemester=$('categorySemesterBtn');
-   /* History46：手機一般模式固定順序為 清除 → 學期 → 編輯；只調順序，不改 History45 已穩定的定位架構。 */
+   /* History51：手機一般模式固定順序為 清除 → 學期 → 編輯；只調順序，不改 History45 已穩定的定位架構。 */
    [categoryClear,categorySemester,categoryEdit].filter(Boolean).forEach(el=>categoryActions.appendChild(el));
  }
  if(isMobileUX()){
@@ -3006,13 +2952,8 @@ function categoryHistoryCount(id){return state.history.reduce((n,h)=>n+(String(h
 function syncCategoryModeButtons(){
  const edit=$('categoryEditBtn'),clear=$('categoryDataClearBtn'),semester=$('categorySemesterBtn');
  const inSemesterView=!!historySemesterViewKey;
- // History48：用模式 class 標記真正的單鍵狀態。hidden 的兄弟元素仍會被 :only-child 計入，
- // 所以前版以 :only-child 調整離開鍵寬度在實機上不會生效。
- const actionWrap=edit?.parentElement;
- if(actionWrap){
-   actionWrap.classList.remove('mode-normal','mode-edit-only','mode-clear-only','mode-semester-only','mode-semester-view-only');
-   actionWrap.classList.add(inSemesterView?'mode-semester-view-only':categoryEditMode?'mode-edit-only':categoryDataClearMode?'mode-clear-only':categorySemesterMode?'mode-semester-only':'mode-normal');
- }
+ const categoryActions=document.querySelector('.sidebar .side-head .category-head-actions');
+ if(categoryActions)categoryActions.classList.toggle('single-mode',categoryEditMode||categoryDataClearMode||categorySemesterMode||inSemesterView);
  // History36：舊 CSS 有 display:inline-flex!important，普通 style.display='none' 會被蓋掉。
  // 統一用 inline !important 控制模式互斥，確保任何模式只留下自己的完成／離開鍵。
  const setVisible=(el,visible)=>{if(!el)return;el.hidden=!visible;el.style.setProperty('display',visible?'inline-flex':'none','important')};
@@ -3023,20 +2964,17 @@ function syncCategoryModeButtons(){
  }
  if(clear){
    clear.classList.toggle('active',categoryDataClearMode);
-   clear.textContent=categoryDataClearMode?'　離開清除　':'清除';
+   clear.textContent=categoryDataClearMode?'離開清除':'清除';
    clear.disabled=false;
    setVisible(clear,categoryDataClearMode||(!categoryEditMode&&!categorySemesterMode&&!inSemesterView));
  }
  if(semester){
    semester.classList.toggle('active',categorySemesterMode||inSemesterView);
-   semester.textContent=inSemesterView?'　　離開學期紀錄　　':(categorySemesterMode?'　離開學期　':'學期');
+   semester.textContent=inSemesterView?'離開學期紀錄':(categorySemesterMode?'離開學期':'學期');
    semester.classList.toggle('semester-view-exit',inSemesterView);
    semester.disabled=false;
    setVisible(semester,categorySemesterMode||inSemesterView||(!categoryEditMode&&!categoryDataClearMode));
  }
- // History50：離開鍵改以內容本身撐開自然寬度。前版 width/min-width 在實機未反映，
- // 因既有 #categoryDataClearBtn/#categorySemesterBtn 規則採 width:auto，直接增加模式文字左右的全形空白，
- // 讓按鈕的 intrinsic width 真正變寬；一般模式文字不加空白，因此不影響已 LOCK 的三鍵排列。
  // History39：手機進入編輯／清除／學期管理時，該模式不需要切換目前類別，隱藏整排以節省高度。
  // 「查看學期紀錄」仍需切換不同類別，因此 inSemesterView 時必須保留。
  const mobileHead=$('mobileCategoryHead');
