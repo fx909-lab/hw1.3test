@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>作業點名簿＋ v2.0 History43｜手機模式鍵精確等距版</title>
+<title>作業點名簿＋ v2.0 History45｜手機模式鍵根因修正版</title>
 <style>
 :root{--bg:#f4f6f8;--card:#fff;--line:#dfe5ea;--text:#2f3b46;--muted:#8794a1;--blue:#4da3ff;--red:#ef5350;--yellow:#f6c945;--green:#59bf76;--orange:#f79a49}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif}
@@ -1982,64 +1982,36 @@ html.mobile-ux .cat-data-clear-back{white-space:nowrap!important;}
 }
 </style>
 
-<style id="history40-mobile-category-action-spacing-css">
-/* History40：手機一般模式三顆模式鍵由同一個 grid 容器控制間距，清除舊 flex gap／個別位移造成的視覺不均。 */
+<style id="history45-mobile-mode-root-fix-css">
+/* History45：從 History39 穩定版修正根因。只在手機一般模式讓三顆鍵同容器、同尺寸、同 gap；
+   各模式只剩單一完成／離開鍵時恢復自然寬度，避免「離開學期／離開清除」被擠窄。 */
 @media(max-width:760px){
   html.mobile-ux .sidebar .side-head .category-head-actions{
-    display:grid!important;
-    grid-auto-flow:column!important;
-    grid-auto-columns:max-content!important;
-    column-gap:7px!important;
-    row-gap:0!important;
-    align-items:center!important;
-    justify-content:end!important;
-    margin-left:auto!important;
-    margin-right:0!important;
-    padding:0!important;
-    transform:none!important;
+    display:flex!important;align-items:center!important;justify-content:flex-end!important;
+    gap:8px!important;margin-left:auto!important;padding:0!important;transform:none!important;
   }
-  html.mobile-ux .sidebar .side-head .category-head-actions>#categoryEditBtn,
-  html.mobile-ux .sidebar .side-head .category-head-actions>#categoryDataClearBtn,
-  html.mobile-ux .sidebar .side-head .category-head-actions>#categorySemesterBtn{
-    position:static!important;
-    margin:0!important;
-    transform:none!important;
-    justify-self:center!important;
+  html.mobile-ux .sidebar .side-head .category-head-actions > #categoryEditBtn:not([hidden]),
+  html.mobile-ux .sidebar .side-head .category-head-actions > #categoryDataClearBtn:not([hidden]),
+  html.mobile-ux .sidebar .side-head .category-head-actions > #categorySemesterBtn:not([hidden]){
+    margin:0!important;transform:none!important;position:static!important;
+    display:inline-flex!important;align-items:center!important;justify-content:center!important;
+    height:36px!important;min-height:36px!important;box-sizing:border-box!important;line-height:1!important;
   }
-}
-</style>
-
-<style id="history43-mobile-category-action-exact-spacing-css">
-/* History43：手機一般模式三顆模式鍵固定同寬同高，取消所有個別 X 軸位移；由同一 grid 的固定 column-gap 精確控制兩段間距。 */
-@media(max-width:760px){
-  html.mobile-ux .sidebar .side-head .category-head-actions{
-    display:grid!important;
-    grid-template-columns:repeat(3,52px)!important;
-    grid-auto-flow:row!important;
-    column-gap:7px!important;
-    row-gap:0!important;
-    align-items:center!important;
-    justify-content:end!important;
+  /* 一般模式三顆同寬，兩段 gap 由同一父容器精確控制。 */
+  html.mobile-ux .sidebar .side-head .category-head-actions > #categoryEditBtn:not([hidden]):not(:only-child),
+  html.mobile-ux .sidebar .side-head .category-head-actions > #categoryDataClearBtn:not([hidden]):not(:only-child),
+  html.mobile-ux .sidebar .side-head .category-head-actions > #categorySemesterBtn:not([hidden]):not(:only-child){
+    width:58px!important;min-width:58px!important;max-width:58px!important;padding:6px 8px!important;flex:0 0 58px!important;
   }
-  html.mobile-ux .sidebar .side-head .category-head-actions>#categoryEditBtn,
-  html.mobile-ux .sidebar .side-head .category-head-actions>#categoryDataClearBtn,
-  html.mobile-ux .sidebar .side-head .category-head-actions>#categorySemesterBtn{
-    width:52px!important;
-    min-width:52px!important;
-    height:31px!important;
-    min-height:31px!important;
-    padding:0 7px!important;
-    margin:0!important;
-    position:static!important;
-    transform:none!important;
-    box-sizing:border-box!important;
-    justify-self:stretch!important;
+  /* 模式內只剩一顆時，文字多長就給足寬度，不套 58px。 */
+  html.mobile-ux .sidebar .side-head .category-head-actions > .btn:only-child{
+    width:auto!important;min-width:max-content!important;max-width:none!important;padding:6px 10px!important;flex:0 0 auto!important;white-space:nowrap!important;
   }
 }
 </style>
 </head>
 <body>
-<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 History43</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
+<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 History45</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
 <div id="sandboxNotice" style="margin:10px auto 0;max-width:1180px;padding:8px 12px;border:1px solid #d5a72c;border-radius:10px;background:#fff8dc;color:#6b5314;font-size:13px;font-weight:700;box-sizing:border-box">🧪 r8 Sandbox 測試資料隔離模式｜不讀寫正式版 localStorage／Firestore 文件</div>
 <section id="cloudPanel" class="cloud-panel" aria-hidden="true">
   <div class="cloud-panel-head">
@@ -2569,8 +2541,10 @@ function setupMobileTopbar(){
  const cloud=$('cloudToggleBtn');
  const exportBtn=$('exportBtn'),studentBtn=$('studentToggleBtn'),overviewBtn=$('overviewToggleBtn');
  const categoryEdit=$('categoryEditBtn'),sideHead=document.querySelector('.sidebar .side-head');
- /* r5：編輯類別維持 v1.0 原本 side-head 位置；手機不再搬到「目前／更換類別」操作列。 */
- if(categoryEdit&&sideHead&&categoryEdit.parentElement!==sideHead)sideHead.appendChild(categoryEdit);
+ const categoryActions=sideHead?sideHead.querySelector('.category-head-actions'):null;
+ /* History45：編輯鍵必須與清除／學期留在同一個 actions 容器；
+    舊 setupMobileTopbar 會把它搬到 side-head 外層，造成一般模式永遠無法等距。 */
+ if(categoryEdit&&categoryActions&&categoryEdit.parentElement!==categoryActions)categoryActions.insertBefore(categoryEdit,categoryActions.firstChild);
  if(isMobileUX()){
    // ReturnSlip52：雲端狀態固定留在大標列、更多左側。
    if(cloud&&cloud.parentElement!==header)header.insertBefore(cloud,more);
