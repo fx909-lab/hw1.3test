@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>作業點名簿＋ v2.0 History54｜匯入入口版面精簡</title>
+<title>作業點名簿＋ v2.0 History55｜學期保存期限判定</title>
 <style>
 :root{--bg:#f4f6f8;--card:#fff;--line:#dfe5ea;--text:#2f3b46;--muted:#8794a1;--blue:#4da3ff;--red:#ef5350;--yellow:#f6c945;--green:#59bf76;--orange:#f79a49}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif}
@@ -1912,7 +1912,7 @@ html.mobile-ux .cat-data-clear-back{white-space:nowrap!important;}
 .semester-manager{width:100%;box-sizing:border-box;padding:2px 0 4px}
 .semester-manager-title{font-size:14px;font-weight:850;color:#344457;margin:2px 0 8px}
 .semester-manager-list{display:flex;flex-direction:column;gap:7px}
-.semester-manager-option{display:grid;grid-template-columns:22px minmax(0,1fr) auto;grid-template-rows:auto auto;column-gap:8px;row-gap:3px;align-items:center;width:100%;box-sizing:border-box;padding:9px 10px;border:1px solid #d7dee6;border-radius:10px;background:#fff;cursor:pointer;color:#344457}
+.semester-manager-option{display:grid;grid-template-columns:22px minmax(0,1fr) auto;grid-template-rows:auto auto auto;column-gap:8px;row-gap:3px;align-items:center;width:100%;box-sizing:border-box;padding:9px 10px;border:1px solid #d7dee6;border-radius:10px;background:#fff;cursor:pointer;color:#344457}
 .semester-manager-option.active{border-color:#9fb2c6;background:#f7fafc;box-shadow:0 0 0 1px rgba(92,118,143,.07) inset}
 .semester-manager-radio{grid-row:1 / span 2;width:18px;height:18px;margin:0;accent-color:#617d99}
 .semester-manager-top{grid-column:2 / 4;display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
@@ -2027,6 +2027,12 @@ body.backup-readonly-mode #categoryEditBtn,body.backup-readonly-mode #categoryDa
 }
 </style>
 <style id="history54-backup-readonly-export-css">
+/* History55：學期保存期限只做判定與顯示；本版不自動刪除、不改既有備份／封存流程。 */
+.semester-retention{grid-column:2 / 4;font-size:11.5px;line-height:1.3;color:#66717c;white-space:normal}
+.semester-retention.expired{color:#a64a4a;font-weight:850}
+.semester-retention.soon{color:#8a6a2d;font-weight:800}
+@media(max-width:760px){html.mobile-ux .semester-retention{font-size:11.5px!important}}
+
 /* History54：外部學期備份可查閱／輸出，但所有會改動資料的入口在唯讀模式停用。 */
 body.backup-readonly-mode .import-label,
 body.backup-readonly-mode #cloudToggleBtn,
@@ -2043,7 +2049,7 @@ body.backup-readonly-mode #historyUsageHint{display:none!important}
 
 </head>
 <body>
-<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 History54</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
+<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 History55</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
 <div id="sandboxNotice" style="margin:10px auto 0;max-width:1180px;padding:8px 12px;border:1px solid #d5a72c;border-radius:10px;background:#fff8dc;color:#6b5314;font-size:13px;font-weight:700;box-sizing:border-box">🧪 r8 Sandbox 測試資料隔離模式｜不讀寫正式版 localStorage／Firestore 文件</div>
 <section id="cloudPanel" class="cloud-panel" aria-hidden="true">
   <div class="cloud-panel-head">
@@ -3052,6 +3058,19 @@ function semesterInfoFromDate(dateStr){
  const startYear=mo>=8?y:(mo===1?y-1:y-1);const term=isUpper?'上學期':'下學期';
  return {key:`${startYear}-${isUpper?'upper':'lower'}`,label:`${startYear-1911} 學年度${term}`,start:isUpper?`${startYear}-08-01`:`${startYear+1}-02-01`,end:isUpper?`${startYear+1}-01-31`:`${startYear+1}-07-31`};
 }
+function addYearsToIsoDate(dateStr,years){
+ const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dateStr||''));if(!m)return '';
+ const y=Number(m[1])+Number(years||0),mo=Number(m[2]),d=Number(m[3]);
+ return `${String(y).padStart(4,'0')}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+}
+function semesterRetentionInfo(info,asOf=TODAY){
+ if(!info?.end)return null;
+ const retainUntil=addYearsToIsoDate(info.end,1);if(!retainUntil)return null;
+ const deleteFrom=(()=>{const d=new Date(retainUntil+'T12:00:00');if(Number.isNaN(d.getTime()))return '';d.setDate(d.getDate()+1);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`})();
+ const today=String(asOf||'');const expired=!!today&&today>retainUntil;
+ let daysLeft=null;if(!expired&&/^\d{4}-\d{2}-\d{2}$/.test(today)){const a=new Date(today+'T12:00:00'),b=new Date(retainUntil+'T12:00:00');if(!Number.isNaN(a.getTime())&&!Number.isNaN(b.getTime()))daysLeft=Math.ceil((b-a)/86400000)}
+ return {retainUntil,deleteFrom,expired,daysLeft,status:expired?'已到期':(daysLeft!==null&&daysLeft<=30?'即將到期':'保留中')};
+}
 function currentSemesterInfo(){return semesterInfoFromDate(TODAY)}
 function activeRecordViewSemesterInfo(){return backupReadOnlyMode&&backupSemesterInfo?backupSemesterInfo:currentSemesterInfo()}
 function semesterKeyOfRecord(h){return semesterInfoFromDate(h?.date)?.key||''}
@@ -3164,8 +3183,9 @@ function renderSemesterManager(box){
      const range=document.createElement('div');range.className='semester-manager-range';range.textContent=`${x.start} ～ ${x.end}`;bottom.appendChild(range);
      if(x.key===cur?.key){const current=document.createElement('div');current.className='semester-manager-current';current.textContent='【目前】';bottom.appendChild(current)}
      else if(archived.has(x.key)){const tag=document.createElement('div');tag.className='semester-manager-archived';tag.textContent='【已封存】';bottom.appendChild(tag)}
+     const retention=semesterRetentionInfo(x);const retentionLine=document.createElement('div');retentionLine.className='semester-retention'+(retention?.expired?' expired':(retention?.status==='即將到期'?' soon':''));retentionLine.textContent=retention?`資料保存：${retention.status}｜保留至 ${retention.retainUntil}`:'資料保存：無法判定';
      radio.addEventListener('change',()=>{selectedKey=x.key;wrap.querySelector('.semester-manager-confirm')?.remove();drawOptions();refreshActions()});
-     row.append(radio,top,bottom);list.appendChild(row);
+     row.append(radio,top,bottom,retentionLine);list.appendChild(row);
    });
  }
  function refreshActions(){const x=semesters.find(v=>v.key===selectedKey)||semesters[0],isCur=x.key===cur?.key,isArchived=archived.has(x.key);archive.textContent=isArchived?'取消封存':'封存';archive.disabled=isCur;}
