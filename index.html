@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>作業點名簿＋ v2.0 History57｜保存期滿強制清除核心</title>
+<title>作業點名簿＋ v2.0 History57｜到期開啟強制處理修正版</title>
 <style>
 :root{--bg:#f4f6f8;--card:#fff;--line:#dfe5ea;--text:#2f3b46;--muted:#8794a1;--blue:#4da3ff;--red:#ef5350;--yellow:#f6c945;--green:#59bf76;--orange:#f79a49}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif}
@@ -2046,6 +2046,19 @@ body.backup-readonly-mode #categoryEditBtn,body.backup-readonly-mode #categoryDa
 .semester-retention.soon{color:#8a6a2d;font-weight:800}
 @media(max-width:760px){html.mobile-ux .semester-retention{font-size:11.5px!important}}
 
+/* History57 修正版：到期資料開站強制處理對話框 */
+.semester-expiry-gate-overlay{position:fixed;inset:0;z-index:100000;background:rgba(15,23,42,.52);display:flex;align-items:center;justify-content:center;padding:18px}
+.semester-expiry-gate{width:min(540px,100%);background:#fff;border:1px solid #d9dee8;border-radius:18px;box-shadow:0 20px 70px rgba(15,23,42,.28);padding:22px}
+.semester-expiry-gate-title{font-size:20px;font-weight:850;color:#7f3030;margin-bottom:10px}
+.semester-expiry-gate-text{font-size:14px;line-height:1.75;color:#4b5565}
+.semester-expiry-gate-status{margin-top:10px;padding:10px 12px;border-radius:12px;background:#f7f8fb;color:#687386;font-size:13px;line-height:1.6}
+.semester-expiry-gate-status.ready{background:#f3f7f3;color:#45624b;font-weight:700}
+.semester-expiry-gate-actions{display:flex;gap:9px;justify-content:flex-end;flex-wrap:wrap;margin-top:18px}
+.semester-expiry-gate-actions .btn{min-width:96px}
+.semester-expiry-delete-confirm{margin-top:14px;padding-top:14px;border-top:1px solid #ead0d0;color:#704646;font-size:13px;line-height:1.6}
+.semester-expiry-delete-confirm-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}
+@media(max-width:600px){.semester-expiry-gate{padding:18px 16px;border-radius:16px}.semester-expiry-gate-actions{display:grid;grid-template-columns:1fr 1fr}.semester-expiry-gate-actions .btn{width:100%;min-width:0}.semester-expiry-gate-actions .btn:first-child{grid-column:1/-1}.semester-expiry-delete-confirm-actions .btn{flex:1 1 0}}
+
 /* History54：外部學期備份可查閱／輸出，但所有會改動資料的入口在唯讀模式停用。 */
 body.backup-readonly-mode .import-label,
 body.backup-readonly-mode #cloudToggleBtn,
@@ -3085,26 +3098,61 @@ function semesterRetentionInfo(info,asOf=TODAY){
  return {retainUntil,deleteFrom,expired,daysLeft,status:expired?'已到期':'保留中'};
 }
 
-/* History57：保存期滿強制清除核心。
-   學期結束後保留一年；到 retainUntil 的隔天（上學期 2/1、下學期 8/1）起，
-   前端每次載入都會移除已到期學期的正式歷史資料。真正『網站未開啟也準時執行』仍需後端排程。 */
+/* History57 修正版：保存期滿後不再靜默刪除。
+   學期結束後保留一年；到 retainUntil 隔天起，下一次開啟網站時以不可略過的對話框要求處理。 */
 function expiredSemesterKeys(asOf=TODAY){
  const keys=new Set();
  state.history.forEach(h=>{const info=semesterInfoFromDate(h?.date),ret=info&&semesterRetentionInfo(info,asOf);if(info&&ret?.expired)keys.add(info.key)});
  return keys;
 }
-function purgeExpiredSemesterData(asOf=TODAY){
- if(backupReadOnlyMode)return {deletedCount:0,semesterKeys:[]};
- const keys=expiredSemesterKeys(asOf);if(!keys.size)return {deletedCount:0,semesterKeys:[]};
+function expiredSemesterInfos(asOf=TODAY){
+ const map=new Map();
+ state.history.forEach(h=>{const info=semesterInfoFromDate(h?.date),ret=info&&semesterRetentionInfo(info,asOf);if(info&&ret?.expired&&!map.has(info.key))map.set(info.key,{...info,retention:ret})});
+ return [...map.values()].sort((a,b)=>String(a.end).localeCompare(String(b.end)));
+}
+function deleteExpiredSemesterData(key){
+ if(backupReadOnlyMode||!key)return 0;
  const before=state.history.length;
- state.history=state.history.filter(h=>!keys.has(semesterKeyOfRecord(h)));
+ state.history=state.history.filter(h=>semesterKeyOfRecord(h)!==key);
  const deletedCount=before-state.history.length;
- if(Array.isArray(state.archivedSemesters))state.archivedSemesters=state.archivedSemesters.filter(k=>!keys.has(String(k)));
- if(historySemesterViewKey&&keys.has(historySemesterViewKey))historySemesterViewKey='';
- const reminder=readSemesterBackupReminderState();let reminderChanged=false;
- keys.forEach(k=>{if(Object.prototype.hasOwnProperty.call(reminder,k)){delete reminder[k];reminderChanged=true}});
- if(reminderChanged)writeSemesterBackupReminderState(reminder);
- return {deletedCount,semesterKeys:[...keys]};
+ if(Array.isArray(state.archivedSemesters))state.archivedSemesters=state.archivedSemesters.filter(k=>String(k)!==String(key));
+ if(historySemesterViewKey===key)historySemesterViewKey='';
+ const reminder=readSemesterBackupReminderState();
+ if(Object.prototype.hasOwnProperty.call(reminder,key)){delete reminder[key];writeSemesterBackupReminderState(reminder)}
+ if(deletedCount){recomputeAllContinuousResolutions();save();renderAll()}
+ return deletedCount;
+}
+function closeExpiredSemesterGate(){document.querySelector('.semester-expiry-gate-overlay')?.remove()}
+function showExpiredSemesterGate(info){
+ if(!info||backupReadOnlyMode||document.querySelector('.semester-expiry-gate-overlay'))return;
+ const records=state.history.filter(h=>semesterKeyOfRecord(h)===info.key);if(!records.length)return;
+ const overlay=document.createElement('div');overlay.className='semester-expiry-gate-overlay';overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');
+ const box=document.createElement('div');box.className='semester-expiry-gate';
+ const title=document.createElement('div');title.className='semester-expiry-gate-title';title.textContent=`${info.label}｜資料已到期`;
+ const text=document.createElement('div');text.className='semester-expiry-gate-text';text.textContent=`此學期資料已超過一年保存期限（保留至 ${info.retention?.retainUntil||'保存期限'}），系統將強制清除。請先確認是否已完成備份。`;
+ const status=document.createElement('div');status.className='semester-expiry-gate-status';status.textContent=`目前共有 ${records.length} 筆歷史紀錄等待處理。`;
+ const actions=document.createElement('div');actions.className='semester-expiry-gate-actions';
+ const backup=document.createElement('button');backup.type='button';backup.className='btn';backup.textContent='立即備份';
+ const done=document.createElement('button');done.type='button';done.className='btn';done.textContent='我已備份';
+ const del=document.createElement('button');del.type='button';del.className='btn danger';del.textContent='刪除';
+ const markReady=(msg)=>{status.textContent=msg;status.classList.add('ready');del.focus()};
+ backup.addEventListener('click',async()=>{backup.disabled=done.disabled=del.disabled=true;const ok=await exportSemesterData(info.key);backup.disabled=done.disabled=del.disabled=false;if(ok)markReady('備份已匯出。請按「刪除」完成到期資料清除。')});
+ done.addEventListener('click',()=>markReady('已確認完成備份。請按「刪除」完成到期資料清除。'));
+ del.addEventListener('click',()=>{
+   box.querySelector('.semester-expiry-delete-confirm')?.remove();
+   const confirm=document.createElement('div');confirm.className='semester-expiry-delete-confirm';
+   const msg=document.createElement('div');msg.textContent=`確定要永久刪除 ${info.label} 的 ${records.length} 筆到期紀錄嗎？刪除後無法復原。`;
+   const confirmActions=document.createElement('div');confirmActions.className='semester-expiry-delete-confirm-actions';
+   const back=document.createElement('button');back.type='button';back.className='btn';back.textContent='返回';
+   const yes=document.createElement('button');yes.type='button';yes.className='btn danger';yes.textContent='確認刪除';
+   back.addEventListener('click',()=>confirm.remove());
+   yes.addEventListener('click',()=>{const count=deleteExpiredSemesterData(info.key);closeExpiredSemesterGate();if(count){const next=expiredSemesterInfos(TODAY)[0];if(next)setTimeout(()=>showExpiredSemesterGate(next),120)}});
+   confirmActions.append(back,yes);confirm.append(msg,confirmActions);box.appendChild(confirm);
+ });
+ actions.append(backup,done,del);box.append(title,text,status,actions);overlay.appendChild(box);document.body.appendChild(overlay);backup.focus();
+}
+function checkExpiredSemesterGate(){
+ if(backupReadOnlyMode)return;refreshToday();const info=expiredSemesterInfos(TODAY)[0];if(info)showExpiredSemesterGate(info);
 }
 
 const SEMESTER_BACKUP_REMINDER_KEY='hwCheckerSemesterBackupReminderV1';
@@ -3147,7 +3195,7 @@ function showSemesterBackupReminder(info,stage,{test=false}={}){
  const title=document.createElement('div');title.className='semester-backup-reminder-title';title.textContent=`${info.label}｜備份提醒`;
  const text=document.createElement('div');text.className='semester-backup-reminder-text';
  text.textContent=stage===1?'學期即將結束，建議現在先備份本學期資料。':'這是本學期結束前的第二次備份提醒；如果尚未備份，建議現在完成。';
- const note=document.createElement('div');note.className='semester-backup-reminder-note';note.textContent=`本學期資料結束後仍會在系統保存一年；真正到保存期限前，系統會另以 Email 做最後提醒。${test?'（目前為測試開啟，不會改變正式提醒紀錄。）':''}`;
+ const note=document.createElement('div');note.className='semester-backup-reminder-note';note.textContent=`本學期資料結束後仍會在系統保存一年；保存期滿後，下一次開啟網站時會要求備份確認並清除到期資料。${test?'（目前為測試開啟，不會改變正式提醒紀錄。）':''}`;
  const actions=document.createElement('div');actions.className='semester-backup-reminder-actions';
  const backup=document.createElement('button');backup.type='button';backup.className='btn';backup.textContent='立即備份';
  const done=document.createElement('button');done.type='button';done.className='btn';done.textContent='我已備份';
@@ -3304,7 +3352,7 @@ function renderSemesterManager(box){
  actions.append(viewItem,exportItem,archiveItem,delItem);wrap.append(list,actions);renderSemesterBackupImport(wrap);renderSemesterReminderTest(wrap);
  const expiryTest=document.createElement('div');expiryTest.className='semester-reminder-test';
  const expiryTitle=document.createElement('div');expiryTitle.className='semester-reminder-test-title';expiryTitle.textContent='History57 到期規則確認';
- const expiryText=document.createElement('div');expiryText.className='semester-action-help';expiryText.textContent='保存期限＝學期結束日＋1年；隔天起強制清除。例：114上保留至 2027-01-31，2027-02-01 起清除；114下保留至 2027-07-31，2027-08-01 起清除。前端會在每次開啟時執行；未開網站也要準時清除的後端排程會在後續版本處理。';
+ const expiryText=document.createElement('div');expiryText.className='semester-action-help';expiryText.textContent='保存期限＝學期結束日＋1年；隔天起視為到期。例：114上保留至 2027-01-31，2027-02-01 起到期；114下保留至 2027-07-31，2027-08-01 起到期。到期後不會靜默刪除，而是在下一次開啟網站時要求備份確認並刪除。此測試型說明正式版前會移除。';
  expiryTest.append(expiryTitle,expiryText);wrap.appendChild(expiryTest);
  box.appendChild(wrap);drawOptions();refreshActions();
 }
@@ -5081,7 +5129,7 @@ $('importFile').addEventListener('change',e=>{
  r.onerror=()=>alert('讀取備份檔失敗，未匯入任何資料。');
  r.readAsText(f);
 });
-const history57ExpiryPurge=purgeExpiredSemesterData(TODAY);recomputeAllContinuousResolutions();history57ExpiryPurge.deletedCount?save():saveLocalOnly();renderAll();setTimeout(checkSemesterBackupReminder,350);
+recomputeAllContinuousResolutions();saveLocalOnly();renderAll();setTimeout(()=>{checkExpiredSemesterGate();if(!expiredSemesterInfos(TODAY).length)checkSemesterBackupReminder()},350);
 </script>
 
 <script type="module">
