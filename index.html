@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>作業點名簿＋｜v2.0 Production RC1</title>
+<title>作業點名簿＋｜v2.0 Production RC2</title>
 <style>
 :root{--bg:#f4f6f8;--card:#fff;--line:#dfe5ea;--text:#2f3b46;--muted:#8794a1;--blue:#4da3ff;--red:#ef5350;--yellow:#f6c945;--green:#59bf76;--orange:#f79a49}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif}
@@ -2069,12 +2069,19 @@ body.backup-readonly-mode .history-edit-panel,
 body.backup-readonly-mode #historyMainEditBanner{display:none!important}
 body.backup-readonly-mode #historyUsageHint{display:none!important}
 
+/* Production RC2：未登入本機資料登入接管提示 */
+.guest-handoff{margin-top:12px;padding:12px 14px;border:1px solid var(--line,#d7dbe2);border-radius:12px;background:rgba(127,127,127,.06)}
+.guest-handoff[hidden]{display:none!important}
+.guest-handoff-title{font-weight:800;margin-bottom:6px}
+.guest-handoff-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.guest-handoff .small{line-height:1.55}
+
 </style>
 
 
 </head>
 <body>
-<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 Production RC1</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
+<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 Production RC2</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
 
 <section id="cloudPanel" class="cloud-panel" aria-hidden="true">
   <div class="cloud-panel-head">
@@ -2099,6 +2106,16 @@ body.backup-readonly-mode #historyUsageHint{display:none!important}
     <button id="cloudDownloadBtn" class="btn" type="button" disabled>從雲端載入</button>
   </div>
   <div id="cloudUserLine" class="small" style="margin-top:8px"></div>
+  <div id="guestHandoffBox" class="guest-handoff" hidden>
+    <div class="guest-handoff-title">這台裝置有登入前建立的本機資料</div>
+    <div id="guestHandoffText" class="small">為避免資料遺失或把共用電腦上的資料誤接到帳號，系統不會自動覆蓋或自動歸戶。請選擇如何處理。</div>
+    <div class="guest-handoff-actions">
+      <button id="guestHandoffMergeBtn" class="btn primary" type="button">安全帶入並合併</button>
+      <button id="guestHandoffAccountBtn" class="btn" type="button">使用我的帳號資料</button>
+      <button id="guestHandoffLaterBtn" class="btn" type="button">稍後處理</button>
+    </div>
+    <div class="small" style="margin-top:7px">「使用我的帳號資料」與「稍後處理」都不會刪除登入前資料；它仍留在這台裝置的未登入資料區。</div>
+  </div>
   <div class="small" style="margin-top:6px">安全提醒：Firebase Web 設定不是登入密碼，但仍請不要把任何密碼、服務帳戶金鑰或私密金鑰放進這個 HTML。</div>
 </section>
 
@@ -5175,7 +5192,12 @@ const ui={
  download:document.getElementById('cloudDownloadBtn'),
  merge:document.getElementById('cloudMergeBtn'),
  privateDevice:document.getElementById('cloudPrivateDevice'),
- userLine:document.getElementById('cloudUserLine')
+ userLine:document.getElementById('cloudUserLine'),
+ guestHandoffBox:document.getElementById('guestHandoffBox'),
+ guestHandoffText:document.getElementById('guestHandoffText'),
+ guestHandoffMerge:document.getElementById('guestHandoffMergeBtn'),
+ guestHandoffAccount:document.getElementById('guestHandoffAccountBtn'),
+ guestHandoffLater:document.getElementById('guestHandoffLaterBtn')
 };
 const bridge=window.hwCloudBridge;
 let firebaseReady=false,auth=null,db=null,currentUser=null,docRef=null,unsubscribe=null;
@@ -5187,6 +5209,39 @@ let CLOUD_BASE_STATE_KEY='hwCheckerV2CloudBaseStateV1:guest';
 const CLOUD_DEVICE_ID_KEY='hwCheckerV2CloudDeviceIdV1';
 // History60：記住「私人裝置，保持登入」的選擇，並讓切換立即套用到 Firebase Auth persistence。
 const CLOUD_PRIVATE_DEVICE_KEY='hwCheckerV2PrivateDeviceV1';
+// Production RC2：guest 資料永遠保留在獨立 namespace；登入時只建立暫存候選，不直接刪除或搬移。
+const GUEST_STORE_KEY='hwCheckerV2SecureV1:guest';
+let pendingGuestState=null,pendingGuestCloudSnap=null,pendingGuestDecision=false;
+function guestStateHasMeaningfulData(raw){
+ try{
+  const x=sanitizeState(raw,true);
+  if((x.history||[]).length)return true;
+  if(x.drafts&&Object.keys(x.drafts).some(k=>Object.keys(x.drafts[k]||{}).length))return true;
+  if(x.contact&&(Object.keys(x.contact.statuses||{}).length||(x.contact.leave||[]).length))return true;
+  const fresh=freshState();
+  if(Number(x.studentCount)!==Number(fresh.studentCount))return true;
+  if(JSON.stringify(x.categories)!==JSON.stringify(fresh.categories))return true;
+  return false;
+ }catch{return false}
+}
+function readGuestCandidate(){
+ try{
+  const raw=localStorage.getItem(GUEST_STORE_KEY);
+  if(!raw)return null;
+  const parsed=JSON.parse(raw);
+  return guestStateHasMeaningfulData(parsed)?sanitizeState(parsed,true):null;
+ }catch{return null}
+}
+function hideGuestHandoff(){if(ui.guestHandoffBox)ui.guestHandoffBox.hidden=true;pendingGuestDecision=false}
+function showGuestHandoff(snap){
+ pendingGuestCloudSnap=snap||null;pendingGuestDecision=true;
+ if(ui.guestHandoffBox)ui.guestHandoffBox.hidden=false;
+ if(ui.guestHandoffText)ui.guestHandoffText.textContent=(snap?.exists?.())
+  ?'這台裝置有登入前資料，而此 Google 帳號也有自己的資料。系統不會自動覆蓋任何一邊；可安全合併，或只使用帳號資料。'
+  :'這台裝置有登入前資料。此 Google 帳號目前沒有雲端紀錄；你可以把登入前資料安全帶入，或保留它在未登入區並從空白帳號開始。';
+ setStatus('登入前資料待處理','偵測到未登入時建立的本機資料；請先選擇處理方式。','wait');
+}
+
 function setCloudAccountScope(uid){
  const scope=uid?`uid_${String(uid).replace(/[^A-Za-z0-9_-]/g,'').slice(0,128)}`:'guest';
  CLOUD_BASE_TOKEN_KEY=`hwCheckerV2CloudBaseTokenV1:${scope}`;
@@ -5336,6 +5391,9 @@ async function initFirebase(){
      const generation=++authBootGeneration;
      authSessionReady=false;
      currentUser=user||null;
+     // RC2：只有從 guest → 已登入帳號時才捕捉未登入資料；不把 A 帳號資料誤當 guest。
+     pendingGuestState=(user&&ACTIVE_ACCOUNT_SCOPE==='guest')?readGuestCandidate():null;
+     hideGuestHandoff();
      setCloudAccountScope(user?.uid||null);
      bridge?.switchAccount?.(user?.uid||null);
      if(unsubscribe){unsubscribe();unsubscribe=null}
@@ -5349,6 +5407,11 @@ async function initFirebase(){
        const snap=await fsMod.getDoc(docRef);
        if(generation!==authBootGeneration)return;
        cloudExists=snap.exists();baseRemoteToken=snapshotToken(snap);setButtons();
+       // RC2：登入前本機資料有內容時，先停住所有自動 upload/download，避免靜默覆蓋。
+       if(pendingGuestState){
+         showGuestHandoff(snap);
+         return;
+       }
        if(!cloudExists){
          await uploadNow();
          startListener();
@@ -5735,6 +5798,43 @@ window.addEventListener('online',()=>{
    queuePush();
  }
 });
+async function resolveGuestHandoff(mode){
+ if(!currentUser||!pendingGuestState)return;
+ const guest=cloneValue(pendingGuestState);
+ const snap=pendingGuestCloudSnap;
+ try{
+  if(mode==='merge'){
+    // 先把 guest 與此帳號目前本機資料合併，再與雲端合併；guest 原始資料不刪除。
+    const accountLocal=bridge?.getState?.()||freshState();
+    let merged=mergeCloudStates(accountLocal,guest,null).state;
+    if(snap?.exists?.()&&snap.data()?.state)merged=mergeCloudStates(merged,snap.data().state,persistedBaseState()).state;
+    if(!confirm('將把「登入前本機資料」安全帶入目前 Google 帳號，並與此帳號既有資料合併。\n\n登入前原始資料仍會保留在這台裝置，不會因這次帶入而刪除。確定繼續嗎？'))return;
+    hideGuestHandoff();
+    pendingGuestState=null;pendingGuestCloudSnap=null;
+    bridge?.applyRemote?.(merged);
+    localStorage.setItem(CLOUD_DIRTY_KEY,'1');
+    const ok=await uploadNow(true);
+    if(ok){startListener();setStatus('登入前資料已安全帶入','登入前資料已與目前帳號資料合併並同步；原始 guest 資料仍保留在這台裝置。','ok')}
+    return;
+  }
+  // account/later 都只切到帳號資料，不刪 guest。account 會立即載入雲端；later 同樣可正常使用帳號，但下次 guest→登入仍會再提示。
+  hideGuestHandoff();
+  pendingGuestState=null;pendingGuestCloudSnap=null;
+  if(snap?.exists?.()){
+    applySnapshot(snap);rememberBaseToken(snapshotToken(snap));startListener();
+    setStatus('已載入帳號資料',mode==='later'?'登入前資料仍保留在這台裝置；下次登入時可再處理。':'已使用目前 Google 帳號的資料；登入前資料仍安全保留在未登入區。','ok');
+  }else{
+    // 帳號沒有雲端資料：保留目前 UID namespace 的本機資料；若也是空白才建立空白雲端。
+    if(bridge?.isDirty?.()||bridge?.hasLocalData?.())await uploadNow(true);else await uploadNow(true);
+    startListener();
+    setStatus('已使用帳號資料',mode==='later'?'登入前資料仍保留在這台裝置；下次登入時可再處理。':'此帳號從自己的資料空間開始；登入前資料仍安全保留。','ok');
+  }
+ }catch(err){console.error('RC2 guest handoff failed',err);setStatus('登入前資料尚未處理','處理未完成；登入前資料仍保留，沒有被刪除。','err')}
+}
+if(ui.guestHandoffMerge)ui.guestHandoffMerge.addEventListener('click',()=>resolveGuestHandoff('merge'));
+if(ui.guestHandoffAccount)ui.guestHandoffAccount.addEventListener('click',()=>resolveGuestHandoff('account'));
+if(ui.guestHandoffLater)ui.guestHandoffLater.addEventListener('click',()=>resolveGuestHandoff('later'));
+
 async function signIn(){
  if(!firebaseReady||!auth)return;
  const {GoogleAuthProvider,signInWithPopup,setPersistence,browserLocalPersistence,browserSessionPersistence}=window.__HW_FIREBASE.authMod;
@@ -5748,6 +5848,7 @@ async function signIn(){
  catch(err){console.error('sign in failed',err);setStatus('登入未完成','Google 登入沒有完成；本機資料完全不受影響。','err')}
 }
 async function signOutNow(){
+ hideGuestHandoff();pendingGuestState=null;pendingGuestCloudSnap=null;
  if(auth)await window.__HW_FIREBASE.authMod.signOut(auth);
  currentUser=null;setButtons();setStatus('雲端待登入','已登出雲端；帳號資料已從畫面隔離，重新登入同一帳號後可再載入。','wait');
 }
