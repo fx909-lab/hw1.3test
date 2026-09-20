@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>作業點名簿＋ v2.0 History59｜到期開啟強制處理修正版</title>
+<title>作業點名簿＋ v2.0 History60｜私人裝置保持登入修正版</title>
 <style>
 :root{--bg:#f4f6f8;--card:#fff;--line:#dfe5ea;--text:#2f3b46;--muted:#8794a1;--blue:#4da3ff;--red:#ef5350;--yellow:#f6c945;--green:#59bf76;--orange:#f79a49}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif}
@@ -2080,7 +2080,7 @@ body.backup-readonly-mode #historyUsageHint{display:none!important}
 
 </head>
 <body>
-<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 History59</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
+<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 History60</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
 <div id="sandboxNotice" style="margin:10px auto 0;max-width:1180px;padding:8px 12px;border:1px solid #d5a72c;border-radius:10px;background:#fff8dc;color:#6b5314;font-size:13px;font-weight:700;box-sizing:border-box">🧪 r8 Sandbox 測試資料隔離模式｜不讀寫正式版 localStorage／Firestore 文件</div>
 <section id="cloudPanel" class="cloud-panel" aria-hidden="true">
   <div class="cloud-panel-head">
@@ -5209,6 +5209,29 @@ let uploadInFlight=false,uploadQueuedAfterFlight=false,lastClientWriteMs=0;
 const CLOUD_BASE_TOKEN_KEY='hwCheckerR8SandboxCloudBaseTokenV1';
 const CLOUD_BASE_STATE_KEY='hwCheckerR8SandboxCloudBaseStateV1';
 const CLOUD_DEVICE_ID_KEY='hwCheckerR8SandboxCloudDeviceIdV1';
+// History60：記住「私人裝置，保持登入」的選擇，並讓切換立即套用到 Firebase Auth persistence。
+const CLOUD_PRIVATE_DEVICE_KEY='hwCheckerR8SandboxPrivateDeviceV1';
+function readPrivateDevicePreference(){
+ return localStorage.getItem(CLOUD_PRIVATE_DEVICE_KEY)==='1';
+}
+function savePrivateDevicePreference(checked){
+ localStorage.setItem(CLOUD_PRIVATE_DEVICE_KEY,checked?'1':'0');
+}
+if(ui.privateDevice){
+ ui.privateDevice.checked=readPrivateDevicePreference();
+ ui.privateDevice.addEventListener('change',async()=>{
+   const checked=!!ui.privateDevice.checked;
+   savePrivateDevicePreference(checked);
+   if(!firebaseReady||!auth||!window.__HW_FIREBASE?.authMod)return;
+   const {setPersistence,browserLocalPersistence,browserSessionPersistence}=window.__HW_FIREBASE.authMod;
+   try{
+     await setPersistence(auth,checked?browserLocalPersistence:browserSessionPersistence);
+   }catch(err){
+     console.error('History60 auth persistence change failed',err);
+     setStatus('登入設定未更新','保持登入設定暫時無法套用；本機作業資料不受影響。','err');
+   }
+ });
+}
 // Firestore 單一文件上限為 1 MiB。JSON 位元組數不是 Firestore 實際編碼大小，
 // 因此採保守門檻：700 KiB 起提醒、850 KiB 起禁止雲端寫入，保留安全緩衝。
 const CLOUD_WARN_BYTES=700*1024;
@@ -5732,7 +5755,9 @@ window.addEventListener('online',()=>{
 async function signIn(){
  if(!firebaseReady||!auth)return;
  const {GoogleAuthProvider,signInWithPopup,setPersistence,browserLocalPersistence,browserSessionPersistence}=window.__HW_FIREBASE.authMod;
- await setPersistence(auth,ui.privateDevice?.checked?browserLocalPersistence:browserSessionPersistence);
+ const keepSignedIn=!!ui.privateDevice?.checked;
+ savePrivateDevicePreference(keepSignedIn);
+ await setPersistence(auth,keepSignedIn?browserLocalPersistence:browserSessionPersistence);
  const provider=new GoogleAuthProvider();
  // Sandbox 測試版：每次按登入都顯示 Google 帳號選擇器，避免直接沿用既有帳號。
  provider.setCustomParameters({prompt:'select_account'});
