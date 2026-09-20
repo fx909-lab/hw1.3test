@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>作業點名簿＋ v2.0 History63｜目前學期查看按鈕灰階版</title>
+<title>作業點名簿＋｜v2.0 Production RC1</title>
 <style>
 :root{--bg:#f4f6f8;--card:#fff;--line:#dfe5ea;--text:#2f3b46;--muted:#8794a1;--blue:#4da3ff;--red:#ef5350;--yellow:#f6c945;--green:#59bf76;--orange:#f79a49}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif}
@@ -2074,8 +2074,8 @@ body.backup-readonly-mode #historyUsageHint{display:none!important}
 
 </head>
 <body>
-<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 History63</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
-<div id="sandboxNotice" style="margin:10px auto 0;max-width:1180px;padding:8px 12px;border:1px solid #d5a72c;border-radius:10px;background:#fff8dc;color:#6b5314;font-size:13px;font-weight:700;box-sizing:border-box">🧪 r8 Sandbox 測試資料隔離模式｜不讀寫正式版 localStorage／Firestore 文件</div>
+<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 Production RC1</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
+
 <section id="cloudPanel" class="cloud-panel" aria-hidden="true">
   <div class="cloud-panel-head">
     <div>
@@ -2265,7 +2265,9 @@ function refreshToday(){
  if(now!==TODAY)TODAY=now;
  return TODAY;
 }
-const STORE='hwCheckerR8SandboxSecureV1';
+let ACTIVE_ACCOUNT_SCOPE='guest';
+const accountStorageKey=(base)=>`${base}:${ACTIVE_ACCOUNT_SCOPE}`;
+let STORE=accountStorageKey('hwCheckerV2SecureV1');
 const DEFAULT_CATS=['國習','甲本','乙本','成語','圈詞','國練','數習','數練','作文','閱讀單','回條','分享報告'];
 const VALID_STATUS=new Set(['red','blue','yellow','green','ring','orange']);
 const SAFE_ID=/^[A-Za-z0-9_-]{1,60}$/;
@@ -2451,7 +2453,7 @@ function sanitizeState(raw,keepDrafts=false){
   }
   return s;
 }
-const CLOUD_DIRTY_KEY='hwCheckerR8SandboxCloudDirtyV1';
+let CLOUD_DIRTY_KEY=accountStorageKey('hwCheckerV2CloudDirtyV1');
 let backupReadOnlyMode=false,backupLiveState=null,backupSemesterInfo=null,backupFileName='';
 let state;try{state=sanitizeState(JSON.parse(localStorage.getItem(STORE)||'null'),true)}catch{state=freshState()}
 let selectedStudents=new Set(),selectedStatus='blue',selectedContactStudents=new Set(),selectedContactStatus='blue',progress={a:'',b:'',skipPages:'',unit:'L',unitNums:'',unitDetail:'',free:''};
@@ -2463,6 +2465,19 @@ function save(){
  if(window.hwCloud&&typeof window.hwCloud.queuePush==='function')window.hwCloud.queuePush();
 }
 window.hwCloudBridge={
+ switchAccount:(uid)=>{
+   const nextScope=uid?`uid_${String(uid).replace(/[^A-Za-z0-9_-]/g,'').slice(0,128)}`:'guest';
+   if(nextScope===ACTIVE_ACCOUNT_SCOPE)return;
+   ACTIVE_ACCOUNT_SCOPE=nextScope;
+   STORE=accountStorageKey('hwCheckerV2SecureV1');
+   CLOUD_DIRTY_KEY=accountStorageKey('hwCheckerV2CloudDirtyV1');
+   SEMESTER_BACKUP_REMINDER_KEY=accountStorageKey('hwCheckerV2SemesterBackupReminderV1');
+   backupReadOnlyMode=false;backupLiveState=null;backupSemesterInfo=null;backupFileName='';
+   try{state=sanitizeState(JSON.parse(localStorage.getItem(STORE)||'null'),true)}catch{state=freshState()}
+   recomputeAllContinuousResolutions();
+   selectedStudents.clear();selectedContactStudents.clear();
+   renderAll();
+ },
  getState:()=>sanitizeState(backupReadOnlyMode&&backupLiveState?backupLiveState:state,false),
  applyRemote:(raw)=>{
    const target=(backupReadOnlyMode&&backupLiveState)?backupLiveState:state;
@@ -2582,8 +2597,8 @@ function recordHasPending(h){if(!h)return false;if(isReturnSlipCategory(h.catId)
 function fmtDate(d){if(!d)return'';const[,m,day]=d.split('-');return`${Number(m)}/${Number(day)}`}
 
 const MOBILE_UX_MAX=600;
-const MOBILE_CATEGORY_COLLAPSE_KEY='hwCheckerR8SandboxMobileCategoryCollapsedV1';
-const CONTACT_COLLAPSE_KEY='hwCheckerR8SandboxContactCollapsedV1';
+const MOBILE_CATEGORY_COLLAPSE_KEY='hwCheckerV2MobileCategoryCollapsedV1';
+const CONTACT_COLLAPSE_KEY='hwCheckerV2ContactCollapsedV1';
 const HISTORY_COLLAPSE_KEY='hwHistoryCollapsedUIFix25V1';
 function readCollapsePref(key,mobileDefault){try{const v=localStorage.getItem(key);if(v==='1')return true;if(v==='0')return false}catch(e){}return isMobileUX()?mobileDefault:false}
 function writeCollapsePref(key,v){try{localStorage.setItem(key,v?'1':'0')}catch(e){}}
@@ -3154,7 +3169,7 @@ function checkExpiredSemesterGate(){
  if(backupReadOnlyMode)return;refreshToday();const info=expiredSemesterInfos(TODAY)[0];if(info)showExpiredSemesterGate(info);
 }
 
-const SEMESTER_BACKUP_REMINDER_KEY='hwCheckerSemesterBackupReminderV1';
+let SEMESTER_BACKUP_REMINDER_KEY=accountStorageKey('hwCheckerV2SemesterBackupReminderV1');
 function readSemesterBackupReminderState(){
  try{const raw=JSON.parse(localStorage.getItem(SEMESTER_BACKUP_REMINDER_KEY)||'{}');return raw&&typeof raw==='object'&&!Array.isArray(raw)?raw:{}}catch{return {}}
 }
@@ -4312,7 +4327,7 @@ function exportOverviewExcel(){
  const semesterTag=backupReadOnlyMode&&backupSemesterInfo?`${String(backupSemesterInfo.label||'備份').replace(/\s+/g,'')}_`:'';
  a.href=url;a.download=`作業最新進度總覽_${semesterTag}${TODAY}.xlsx`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
-const OVERVIEW_VIEW_MODE_KEY='hwCheckerR8SandboxOverviewViewModeV1';
+const OVERVIEW_VIEW_MODE_KEY='hwCheckerV2OverviewViewModeV1';
 function setOverviewViewMode(mode,save=true){
  const sticky=mode==='sticky';
  const panel=$('overviewPanel');
@@ -5167,11 +5182,16 @@ let firebaseReady=false,auth=null,db=null,currentUser=null,docRef=null,unsubscri
 let authSessionReady=false,authBootGeneration=0;
 let queueTimer=null,applyingRemote=false,lastRemoteToken='',baseRemoteToken='',pendingUploadToken='',cloudExists=false,syncConflict=false;
 let uploadInFlight=false,uploadQueuedAfterFlight=false,lastClientWriteMs=0;
-const CLOUD_BASE_TOKEN_KEY='hwCheckerR8SandboxCloudBaseTokenV1';
-const CLOUD_BASE_STATE_KEY='hwCheckerR8SandboxCloudBaseStateV1';
-const CLOUD_DEVICE_ID_KEY='hwCheckerR8SandboxCloudDeviceIdV1';
+let CLOUD_BASE_TOKEN_KEY='hwCheckerV2CloudBaseTokenV1:guest';
+let CLOUD_BASE_STATE_KEY='hwCheckerV2CloudBaseStateV1:guest';
+const CLOUD_DEVICE_ID_KEY='hwCheckerV2CloudDeviceIdV1';
 // History60：記住「私人裝置，保持登入」的選擇，並讓切換立即套用到 Firebase Auth persistence。
-const CLOUD_PRIVATE_DEVICE_KEY='hwCheckerR8SandboxPrivateDeviceV1';
+const CLOUD_PRIVATE_DEVICE_KEY='hwCheckerV2PrivateDeviceV1';
+function setCloudAccountScope(uid){
+ const scope=uid?`uid_${String(uid).replace(/[^A-Za-z0-9_-]/g,'').slice(0,128)}`:'guest';
+ CLOUD_BASE_TOKEN_KEY=`hwCheckerV2CloudBaseTokenV1:${scope}`;
+ CLOUD_BASE_STATE_KEY=`hwCheckerV2CloudBaseStateV1:${scope}`;
+}
 function readPrivateDevicePreference(){
  return localStorage.getItem(CLOUD_PRIVATE_DEVICE_KEY)==='1';
 }
@@ -5316,13 +5336,15 @@ async function initFirebase(){
      const generation=++authBootGeneration;
      authSessionReady=false;
      currentUser=user||null;
+     setCloudAccountScope(user?.uid||null);
+     bridge?.switchAccount?.(user?.uid||null);
      if(unsubscribe){unsubscribe();unsubscribe=null}
      cloudExists=false;docRef=null;syncConflict=false;baseRemoteToken='';pendingUploadToken='';setButtons();
      if(!user){setStatus('雲端待登入','Firebase 已設定；請登入 Google 帳號開始同步。','wait');return}
      if(!await waitForRestoredAuth(user,generation))return;
      if(generation!==authBootGeneration||!currentUser||currentUser.uid!==user.uid)return;
      try{
-       docRef=fsMod.doc(db,'users',user.uid,'apps','homework-rollcall-plus-r8-sandbox');
+       docRef=fsMod.doc(db,'users',user.uid,'apps','homework-rollcall-plus-v2');
        setStatus('正在檢查雲端','登入狀態已確認，正在確認雲端是否已有紀錄…','wait');
        const snap=await fsMod.getDoc(docRef);
        if(generation!==authBootGeneration)return;
@@ -5547,7 +5569,7 @@ async function mergeNow(){
    }
    // applyRemote 會保留本機 drafts；再標 dirty，讓合併結果成為待上傳正式資料。
    bridge?.applyRemote?.(result.state);
-   localStorage.setItem('hwCheckerR8SandboxCloudDirtyV1','1');
+   localStorage.setItem(CLOUD_DIRTY_KEY,'1');
    // 強制寫回是使用者已明確確認的合併結果；若容量防護阻擋，保留衝突狀態與本機資料。
    const mergedUploaded=await uploadNow(true);
    if(!mergedUploaded)return;
@@ -5567,13 +5589,13 @@ async function uploadNow(force=false){
  }
  uploadInFlight=true;
  if(!authSessionReady){
-   localStorage.setItem('hwCheckerR8SandboxCloudDirtyV1','1');
+   localStorage.setItem(CLOUD_DIRTY_KEY,'1');
    setStatus('登入狀態確認中','登入狀態尚未確認完成；資料已保存在本機，暫不寫入雲端。','wait');
    setButtons();
    return false;
  }
  if(!navigator.onLine){
-   localStorage.setItem('hwCheckerR8SandboxCloudDirtyV1','1');
+   localStorage.setItem(CLOUD_DIRTY_KEY,'1');
    setStatus('離線・待同步','目前沒有網路；資料已保存在這台裝置，恢復網路後再同步到雲端。','wait');
    setButtons();
    return false;
@@ -5626,7 +5648,7 @@ async function uploadNow(force=false){
       ?`已成功同步；目前雲端資料估計約 ${formatKiB(sizeInfo.bytes)}。建議先匯出 JSON 備份，並在方便時整理較舊歷史紀錄。`
       :'這台裝置的紀錄已寫入雲端。',sizeInfo.warn?'wait':'ok');
   }else{
-    localStorage.setItem('hwCheckerR8SandboxCloudDirtyV1','1');
+    localStorage.setItem(CLOUD_DIRTY_KEY,'1');
     setStatus('等待同步','上一筆已同步；偵測到同步途中還有較新的修改，接著送出最新版…','wait');
     uploadQueuedAfterFlight=true;
   }
@@ -5666,7 +5688,7 @@ function queuePush(){
  if(!currentUser||!docRef||applyingRemote)return;
  if(!authSessionReady){
    clearTimeout(queueTimer);queueTimer=null;
-   localStorage.setItem('hwCheckerR8SandboxCloudDirtyV1','1');
+   localStorage.setItem(CLOUD_DIRTY_KEY,'1');
    setStatus('登入狀態確認中','登入狀態尚未確認完成；本機變更會在認證完成後再同步。','wait');
    setButtons();
    return;
@@ -5674,13 +5696,13 @@ function queuePush(){
  if(syncConflict){enterSyncConflict();return}
  if(uploadInFlight){
    uploadQueuedAfterFlight=true;
-   localStorage.setItem('hwCheckerR8SandboxCloudDirtyV1','1');
+   localStorage.setItem(CLOUD_DIRTY_KEY,'1');
    setStatus('等待同步','上一筆正在同步；新的修改已排在下一輪。','wait');
    return;
  }
  if(!navigator.onLine){
    clearTimeout(queueTimer);queueTimer=null;
-   localStorage.setItem('hwCheckerR8SandboxCloudDirtyV1','1');
+   localStorage.setItem(CLOUD_DIRTY_KEY,'1');
    setStatus('離線・待同步','目前沒有網路；本機仍可正常操作與儲存，恢復網路後會再嘗試同步。','wait');
    setButtons();
    return;
@@ -5700,7 +5722,7 @@ function queuePush(){
 }
 window.addEventListener('offline',()=>{
  clearTimeout(queueTimer);queueTimer=null;pendingUploadToken='';
- if(bridge?.isDirty?.())localStorage.setItem('hwCheckerR8SandboxCloudDirtyV1','1');
+ if(bridge?.isDirty?.())localStorage.setItem(CLOUD_DIRTY_KEY,'1');
  setStatus('離線・待同步',bridge?.isDirty?.()
    ?'網路已中斷；尚未同步的變更已保存在這台裝置，仍可繼續操作。恢復網路後會再同步。'
    :'網路已中斷；目前資料仍保存在這台裝置。離線期間可繼續操作，新變更會等恢復網路後同步。','wait');
@@ -5720,14 +5742,14 @@ async function signIn(){
  savePrivateDevicePreference(keepSignedIn);
  await setPersistence(auth,keepSignedIn?browserLocalPersistence:browserSessionPersistence);
  const provider=new GoogleAuthProvider();
- // Sandbox 測試版：每次按登入都顯示 Google 帳號選擇器，避免直接沿用既有帳號。
+ // 每次手動登入都顯示 Google 帳號選擇器，降低共用裝置誤用上一個帳號的風險。
  provider.setCustomParameters({prompt:'select_account'});
  try{await signInWithPopup(auth,provider)}
  catch(err){console.error('sign in failed',err);setStatus('登入未完成','Google 登入沒有完成；本機資料完全不受影響。','err')}
 }
 async function signOutNow(){
  if(auth)await window.__HW_FIREBASE.authMod.signOut(auth);
- currentUser=null;setButtons();setStatus('雲端待登入','已登出雲端；這台裝置上的本機資料仍保留。','wait');
+ currentUser=null;setButtons();setStatus('雲端待登入','已登出雲端；帳號資料已從畫面隔離，重新登入同一帳號後可再載入。','wait');
 }
 window.hwCloud={
  queuePush,
