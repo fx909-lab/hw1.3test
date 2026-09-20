@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>作業點名簿＋｜v2.0 Production RC4</title>
+<title>作業點名簿＋｜v2.0 Production RC5</title>
 <style>
 :root{--bg:#f4f6f8;--card:#fff;--line:#dfe5ea;--text:#2f3b46;--muted:#8794a1;--blue:#4da3ff;--red:#ef5350;--yellow:#f6c945;--green:#59bf76;--orange:#f79a49}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif}
@@ -2069,7 +2069,7 @@ body.backup-readonly-mode .history-edit-panel,
 body.backup-readonly-mode #historyMainEditBanner{display:none!important}
 body.backup-readonly-mode #historyUsageHint{display:none!important}
 
-/* Production RC4：未登入本機資料逐筆接管隔離提示 */
+/* Production RC5：未登入本機資料逐筆接管隔離提示 */
 .guest-handoff{margin-top:12px;padding:12px 14px;border:1px solid var(--line,#d7dbe2);border-radius:12px;background:rgba(127,127,127,.06)}
 .guest-handoff[hidden]{display:none!important}
 .guest-handoff-title{font-weight:800;margin-bottom:6px}
@@ -2081,7 +2081,7 @@ body.backup-readonly-mode #historyUsageHint{display:none!important}
 
 </head>
 <body>
-<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 Production RC4</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
+<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 Production RC5</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
 
 <section id="cloudPanel" class="cloud-panel" aria-hidden="true">
   <div class="cloud-panel-head">
@@ -2432,11 +2432,13 @@ function sanitizeState(raw,keepDrafts=false){
       const recordLabels=catMeta?.workflow==='returnSlip'&&h.returnSlipLabels&&typeof h.returnSlipLabels==='object'&&!Array.isArray(h.returnSlipLabels)
         ?sanitizeReturnSlipLabels(h.returnSlipLabels,catMeta.returnSlipLabels||RETURN_SLIP_DEFAULT_LABELS)
         :undefined;
+      const guestSourceId=SAFE_ID.test(String(h.guestSourceId||''))?String(h.guestSourceId):undefined;
       s.history.push({
         id,catId,date:h.date,content:cleanText(h.content,100),workLabel:cleanText(h.workLabel,6),
         progressType:['pages','unit','free','none'].includes(h.progressType)?h.progressType:'free',
         statuses,resolved,resolvedParts,manualResolved,
         ...(recordLabels?{returnSlipLabels:recordLabels,returnSlipMerge:sanitizeReturnSlipMerge(h.returnSlipMerge)}:{}),
+        ...(guestSourceId?{guestSourceId}:{}),
         createdAt:Number.isFinite(Number(h.createdAt))?Number(h.createdAt):undefined,updated:Number.isFinite(Number(h.updated))?Number(h.updated):Date.now()
       });
     }
@@ -2474,7 +2476,19 @@ let CLOUD_DIRTY_KEY=accountStorageKey('hwCheckerV2CloudDirtyV1');
 let backupReadOnlyMode=false,backupLiveState=null,backupSemesterInfo=null,backupFileName='';
 let state;try{state=sanitizeState(JSON.parse(localStorage.getItem(STORE)||'null'),true)}catch{state=freshState()}
 let selectedStudents=new Set(),selectedStatus='blue',selectedContactStudents=new Set(),selectedContactStatus='blue',progress={a:'',b:'',skipPages:'',unit:'L',unitNums:'',unitDetail:'',free:''};
-function saveLocalOnly(){if(backupReadOnlyMode)return;localStorage.setItem(STORE,JSON.stringify(state))}
+function newGuestSourceId(){
+ try{if(globalThis.crypto?.randomUUID)return 'gs_'+crypto.randomUUID().replace(/-/g,'').slice(0,32)}catch{}
+ return 'gs_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,12);
+}
+function ensureGuestSourceIds(target){
+ if(ACTIVE_ACCOUNT_SCOPE!=='guest'||!target||!Array.isArray(target.history))return false;
+ let changed=false;
+ for(const h of target.history){
+  if(!SAFE_ID.test(String(h.guestSourceId||''))){h.guestSourceId=newGuestSourceId();changed=true}
+ }
+ return changed;
+}
+function saveLocalOnly(){if(backupReadOnlyMode)return;ensureGuestSourceIds(state);localStorage.setItem(STORE,JSON.stringify(state))}
 function save(){
  if(backupReadOnlyMode)return;
  saveLocalOnly();
@@ -5209,24 +5223,45 @@ let CLOUD_BASE_STATE_KEY='hwCheckerV2CloudBaseStateV1:guest';
 const CLOUD_DEVICE_ID_KEY='hwCheckerV2CloudDeviceIdV1';
 // History60：記住「私人裝置，保持登入」的選擇，並讓切換立即套用到 Firebase Auth persistence。
 const CLOUD_PRIVATE_DEVICE_KEY='hwCheckerV2PrivateDeviceV1';
-// Production RC4：guest 原始資料永遠保留在獨立 namespace；正式接管改為「逐筆 history ID」隔離。
-// 某筆匿名紀錄一旦被任一帳號成功安全帶入並完成雲端寫入，就不再提供給其他帳號接管；
-// 之後在未登入區新增的新紀錄仍保持未接管，可由之後登入的帳號自行決定是否帶入。
+// Production RC5：匿名 history 以永久 guestSourceId 作為來源身分，不再用可刪除／可重建的 來源 ID 判斷接管。
+// 一個來源一旦被任一帳號成功接管，就永久列入本機接管帳本；匿名區之後刪除它、修改它，或新增其他紀錄，都不會讓舊來源重新提供給別的帳號。
 const GUEST_STORE_KEY='hwCheckerV2SecureV1:guest';
-const GUEST_CLAIMED_HISTORY_KEY='hwCheckerV2GuestClaimedHistoryV1';
+const GUEST_CLAIMED_SOURCE_KEY='hwCheckerV2GuestClaimedSourceV2';
+const LEGACY_GUEST_CLAIMED_HISTORY_KEY='hwCheckerV2GuestClaimedHistoryV1';
 let pendingGuestState=null,pendingGuestCloudSnap=null,pendingGuestDecision=false;
-function readClaimedGuestHistoryIds(){
+function readClaimedGuestSources(){
  try{
-  const raw=JSON.parse(localStorage.getItem(GUEST_CLAIMED_HISTORY_KEY)||'[]');
+  const raw=JSON.parse(localStorage.getItem(GUEST_CLAIMED_SOURCE_KEY)||'[]');
   if(!Array.isArray(raw))return new Set();
-  return new Set(raw.map(x=>String(x||'')).filter(x=>SAFE_ID.test(x)).slice(0,2000));
+  return new Set(raw.map(x=>String(x||'')).filter(x=>SAFE_ID.test(x)).slice(0,4000));
  }catch{return new Set()}
 }
-function rememberClaimedGuestHistory(guest){
+function writeClaimedGuestSources(set){
+ try{localStorage.setItem(GUEST_CLAIMED_SOURCE_KEY,JSON.stringify([...set].filter(x=>SAFE_ID.test(String(x))).slice(-4000)))}catch{}
+}
+function readLegacyClaimedHistoryIds(){
+ try{
+  const raw=JSON.parse(localStorage.getItem(LEGACY_GUEST_CLAIMED_HISTORY_KEY)||'[]');
+  return Array.isArray(raw)?new Set(raw.map(x=>String(x||'')).filter(x=>SAFE_ID.test(x))):new Set();
+ }catch{return new Set()}
+}
+function normalizeGuestSourceLedger(guest){
+ if(!guest||!Array.isArray(guest.history))return false;
+ const claimed=readClaimedGuestSources(),legacy=readLegacyClaimedHistoryIds();
+ let changed=false,ledgerChanged=false;
+ for(const h of guest.history){
+  if(!SAFE_ID.test(String(h.guestSourceId||''))){h.guestSourceId=newGuestSourceId();changed=true}
+  // RC4 → RC5 安全遷移：RC4 已接管過的 來源 ID，轉成永久來源 ID，避免升版後重新被接管。
+  if(legacy.has(String(h.id||''))&&!claimed.has(h.guestSourceId)){claimed.add(h.guestSourceId);ledgerChanged=true}
+ }
+ if(ledgerChanged)writeClaimedGuestSources(claimed);
+ return changed;
+}
+function rememberClaimedGuestSources(guest){
  if(!guest||!Array.isArray(guest.history))return;
- const claimed=readClaimedGuestHistoryIds();
- for(const h of guest.history){const id=String(h?.id||'');if(SAFE_ID.test(id))claimed.add(id)}
- localStorage.setItem(GUEST_CLAIMED_HISTORY_KEY,JSON.stringify([...claimed].slice(-2000)));
+ const claimed=readClaimedGuestSources();
+ for(const h of guest.history){const sid=String(h?.guestSourceId||'');if(SAFE_ID.test(sid))claimed.add(sid)}
+ writeClaimedGuestSources(claimed);
 }
 function guestStateHasMeaningfulData(raw){
  try{
@@ -5245,10 +5280,14 @@ function readGuestCandidate(){
   const raw=localStorage.getItem(GUEST_STORE_KEY);
   if(!raw)return null;
   const guest=sanitizeState(JSON.parse(raw),true);
-  const claimed=readClaimedGuestHistoryIds();
-  // 關鍵：已被任何帳號正式接管的匿名 history 不再進入下一個帳號的候選資料。
-  guest.history=(guest.history||[]).filter(h=>!claimed.has(String(h?.id||'')));
-  return guestStateHasMeaningfulData(guest)?guest:null;
+  const sourceChanged=normalizeGuestSourceLedger(guest);
+  if(sourceChanged)localStorage.setItem(GUEST_STORE_KEY,JSON.stringify(guest));
+  const claimed=readClaimedGuestSources();
+  // 只把「從未被任何帳號成功接管」的永久來源交給下一個帳號。
+  guest.history=(guest.history||[]).filter(h=>!claimed.has(String(h?.guestSourceId||'')));
+  // RC5 接管只針對正式 history；避免舊 drafts/contact/settings 因匿名區長期保留而跨帳號重複流入。
+  guest.drafts={};guest.contact=freshState().contact;guest.archivedSemesters=[];
+  return (guest.history||[]).length?guest:null;
  }catch{return null}
 }
 function hideGuestHandoff(){if(ui.guestHandoffBox)ui.guestHandoffBox.hidden=true;pendingGuestDecision=false}
@@ -5410,7 +5449,7 @@ async function initFirebase(){
      const generation=++authBootGeneration;
      authSessionReady=false;
      currentUser=user||null;
-     // RC4：只有 guest → 已登入帳號時才捕捉匿名資料；readGuestCandidate() 已排除所有曾被任一帳號成功接管的 history。
+     // RC5：只有 guest → 已登入帳號時才捕捉匿名資料；readGuestCandidate() 已排除所有曾被任一帳號成功接管的 history。
      const guestCandidate=(user&&ACTIVE_ACCOUNT_SCOPE==='guest')?readGuestCandidate():null;
      pendingGuestState=(user&&guestCandidate)?guestCandidate:null;
      hideGuestHandoff();
@@ -5828,18 +5867,18 @@ async function resolveGuestHandoff(mode){
     const accountLocal=bridge?.getState?.()||freshState();
     let merged=mergeCloudStates(accountLocal,guest,null).state;
     if(snap?.exists?.()&&snap.data()?.state)merged=mergeCloudStates(merged,snap.data().state,persistedBaseState()).state;
-    if(!confirm('將把「尚未被任何帳號接管的登入前紀錄」安全帶入目前 Google 帳號，並與此帳號既有資料合併。\n\n登入前原始資料仍會保留在這台裝置；成功帶入的紀錄會標記為已接管，不再提供給其他帳號。確定繼續嗎？'))return;
+    if(!confirm('將把「尚未被任何帳號接管的登入前紀錄」安全帶入目前 Google 帳號，並與此帳號既有資料合併。\n\n登入前原始資料仍會保留在這台裝置；成功帶入的來源會記入永久接管帳本，不再提供給其他帳號。確定繼續嗎？'))return;
     hideGuestHandoff();
     pendingGuestState=null;pendingGuestCloudSnap=null;
     bridge?.applyRemote?.(merged);
     localStorage.setItem(CLOUD_DIRTY_KEY,'1');
     const ok=await uploadNow(true);
     if(ok){
-      // RC4：只有「合併 + 雲端寫入成功」才把這次實際帶入的匿名 history ID 標成已接管。
-      // guest 原始資料不刪；但這些已接管紀錄不會再提供給其他帳號。之後新增的匿名紀錄仍可被接管。
-      rememberClaimedGuestHistory(guest);
+      // RC5：只有「合併 + 雲端寫入成功」才把這次實際帶入的匿名 來源 ID 標成已接管。
+      // guest 原始資料不刪；但這些已接管來源不會再提供給其他帳號。之後新增的匿名紀錄仍可被接管。
+      rememberClaimedGuestSources(guest);
       startListener();
-      setStatus('登入前資料已安全帶入','這次尚未被接管的登入前紀錄已與目前帳號資料合併並同步；原始 guest 資料仍保留，但已接管紀錄不會再提供給其他帳號。','ok');
+      setStatus('登入前資料已安全帶入','這次尚未被接管的登入前紀錄已與目前帳號資料合併並同步；原始 guest 資料仍保留，但已接管來源不會再提供給其他帳號。','ok');
     }
     return;
   }
@@ -5855,7 +5894,7 @@ async function resolveGuestHandoff(mode){
     startListener();
     setStatus('已使用帳號資料',mode==='later'?'登入前資料仍保留在這台裝置；下次登入時可再處理。':'此帳號從自己的資料空間開始；登入前資料仍安全保留。','ok');
   }
- }catch(err){console.error('RC4 guest handoff failed',err);setStatus('登入前資料尚未處理','處理未完成；登入前資料仍保留，沒有被刪除。','err')}
+ }catch(err){console.error('RC5 guest handoff failed',err);setStatus('登入前資料尚未處理','處理未完成；登入前資料仍保留，沒有被刪除。','err')}
 }
 if(ui.guestHandoffMerge)ui.guestHandoffMerge.addEventListener('click',()=>resolveGuestHandoff('merge'));
 if(ui.guestHandoffAccount)ui.guestHandoffAccount.addEventListener('click',()=>resolveGuestHandoff('account'));
