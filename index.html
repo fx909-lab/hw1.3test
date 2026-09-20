@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>作業點名簿＋ v2.0 History60｜私人裝置保持登入修正版</title>
+<title>作業點名簿＋ v2.0 History61｜Production 候選清理版</title>
 <style>
 :root{--bg:#f4f6f8;--card:#fff;--line:#dfe5ea;--text:#2f3b46;--muted:#8794a1;--blue:#4da3ff;--red:#ef5350;--yellow:#f6c945;--green:#59bf76;--orange:#f79a49}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif}
@@ -655,9 +655,6 @@ html.mobile-ux .cat-list.editing .category-delete{white-space:nowrap!important}
 .semester-backup-reminder-note{margin-top:10px;padding:10px 12px;border-radius:12px;background:#f7f8fb;color:#687386;font-size:13px;line-height:1.6}
 .semester-backup-reminder-actions{display:flex;gap:9px;justify-content:flex-end;flex-wrap:wrap;margin-top:18px}
 .semester-backup-reminder-actions .btn{min-width:96px}
-.semester-reminder-test{margin-top:14px;padding-top:12px;border-top:1px dashed #d7dce5}
-.semester-reminder-test-title{font-size:12px;color:#7a8495;margin-bottom:7px}
-.semester-reminder-test-actions{display:flex;gap:8px;flex-wrap:wrap}
 @media(max-width:600px){.semester-backup-reminder{padding:18px 16px;border-radius:16px}.semester-backup-reminder-actions{display:grid;grid-template-columns:1fr 1fr}.semester-backup-reminder-actions .btn{width:100%;min-width:0}.semester-backup-reminder-actions .btn:first-child{grid-column:1/-1}}
 </style>
 
@@ -2071,16 +2068,12 @@ body.backup-readonly-mode .history-edit-panel,
 body.backup-readonly-mode #historyMainEditBanner{display:none!important}
 body.backup-readonly-mode #historyUsageHint{display:none!important}
 
-/* History58：時間邊界測試入口；正式版前移除 */
-.history58-time-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}
-.history58-time-input{min-height:38px;padding:7px 9px;border:1px solid #d8dde5;border-radius:9px;background:#fff;color:#243142;font:inherit}
-@media(max-width:900px){.history58-time-row{align-items:stretch}.history58-time-input{width:100%}.history58-time-row .btn{flex:1 1 auto}}
 </style>
 
 
 </head>
 <body>
-<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 History60</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
+<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 History61</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
 <div id="sandboxNotice" style="margin:10px auto 0;max-width:1180px;padding:8px 12px;border:1px solid #d5a72c;border-radius:10px;background:#fff8dc;color:#6b5314;font-size:13px;font-weight:700;box-sizing:border-box">🧪 r8 Sandbox 測試資料隔離模式｜不讀寫正式版 localStorage／Firestore 文件</div>
 <section id="cloudPanel" class="cloud-panel" aria-hidden="true">
   <div class="cloud-panel-head">
@@ -2265,14 +2258,9 @@ function localToday(){
  const d=new Date(),y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');
  return `${y}-${m}-${day}`;
 }
-// History58：僅供離峰／時間邊界實機測試。正式版前會移除日期覆寫入口。
-const HISTORY58_TEST_DATE_KEY='hwCheckerHistory58TestDate';
-function history58TestDate(){
- try{const v=String(localStorage.getItem(HISTORY58_TEST_DATE_KEY)||'');return /^\d{4}-\d{2}-\d{2}$/.test(v)?v:''}catch{return ''}
-}
-let TODAY=history58TestDate()||localToday();
+let TODAY=localToday();
 function refreshToday(){
- const now=history58TestDate()||localToday();
+ const now=localToday();
  if(now!==TODAY)TODAY=now;
  return TODAY;
 }
@@ -3197,7 +3185,7 @@ function shouldShowSemesterBackupReminder(info,stage){
  return stage===1?!rec.firstSeen:!rec.secondSeen;
 }
 function closeSemesterBackupReminder(){document.querySelector('.semester-backup-reminder-overlay')?.remove()}
-function showSemesterBackupReminder(info,stage,{test=false}={}){
+function showSemesterBackupReminder(info,stage){
  if(!info||!stage||document.querySelector('.semester-backup-reminder-overlay'))return;
  const sch=semesterBackupReminderSchedule(info);if(!sch)return;
  const overlay=document.createElement('div');overlay.className='semester-backup-reminder-overlay';overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');
@@ -3205,42 +3193,18 @@ function showSemesterBackupReminder(info,stage,{test=false}={}){
  const title=document.createElement('div');title.className='semester-backup-reminder-title';title.textContent=`${info.label}｜備份提醒`;
  const text=document.createElement('div');text.className='semester-backup-reminder-text';
  text.textContent=stage===1?'學期即將結束，建議現在先備份本學期資料。':'這是本學期結束前的第二次備份提醒；如果尚未備份，建議現在完成。';
- const note=document.createElement('div');note.className='semester-backup-reminder-note';note.textContent=`本學期資料結束後仍會在系統保存一年；保存期滿後，下一次開啟網站時會要求備份確認並清除到期資料。${test?'（目前為測試開啟，不會改變正式提醒紀錄。）':''}`;
+ const note=document.createElement('div');note.className='semester-backup-reminder-note';note.textContent='本學期資料結束後仍會在系統保存一年；保存期滿後，下一次開啟網站時會要求備份確認並清除到期資料。';
  const actions=document.createElement('div');actions.className='semester-backup-reminder-actions';
  const backup=document.createElement('button');backup.type='button';backup.className='btn';backup.textContent='立即備份';
  const done=document.createElement('button');done.type='button';done.className='btn';done.textContent='我已備份';
  const later=document.createElement('button');later.type='button';later.className='btn';later.textContent='下次再提醒';
- backup.addEventListener('click',async()=>{backup.disabled=done.disabled=later.disabled=true;const ok=await exportSemesterData(info.key);if(ok){if(!test)markSemesterBackupComplete(info,'exported');closeSemesterBackupReminder()}else{backup.disabled=done.disabled=later.disabled=false}});
- done.addEventListener('click',()=>{if(!test)markSemesterBackupComplete(info,'marked');closeSemesterBackupReminder()});
- later.addEventListener('click',()=>{if(!test)updateSemesterBackupReminderRecord(info,stage===1?{firstSeen:true}:{secondSeen:true});closeSemesterBackupReminder()});
+ backup.addEventListener('click',async()=>{backup.disabled=done.disabled=later.disabled=true;const ok=await exportSemesterData(info.key);if(ok){markSemesterBackupComplete(info,'exported');closeSemesterBackupReminder()}else{backup.disabled=done.disabled=later.disabled=false}});
+ done.addEventListener('click',()=>{markSemesterBackupComplete(info,'marked');closeSemesterBackupReminder()});
+ later.addEventListener('click',()=>{updateSemesterBackupReminderRecord(info,stage===1?{firstSeen:true}:{secondSeen:true});closeSemesterBackupReminder()});
  actions.append(backup,done,later);box.append(title,text,note,actions);overlay.appendChild(box);document.body.appendChild(overlay);backup.focus();
 }
 function checkSemesterBackupReminder(){
  if(backupReadOnlyMode)return;refreshToday();const info=currentSemesterInfo(),stage=semesterBackupReminderStage(info);if(stage&&shouldShowSemesterBackupReminder(info,stage))showSemesterBackupReminder(info,stage);
-}
-function renderSemesterReminderTest(wrap){
- const info=currentSemesterInfo();if(!info)return;const test=document.createElement('div');test.className='semester-reminder-test';
- const title=document.createElement('div');title.className='semester-reminder-test-title';title.textContent='History56 實機測試（不會記錄成已提醒／已備份）';
- const acts=document.createElement('div');acts.className='semester-reminder-test-actions';
- const b1=document.createElement('button');b1.type='button';b1.className='btn';b1.textContent='測試第一次提醒';
- const b2=document.createElement('button');b2.type='button';b2.className='btn';b2.textContent='測試第二次提醒';
- b1.addEventListener('click',()=>showSemesterBackupReminder(info,1,{test:true}));b2.addEventListener('click',()=>showSemesterBackupReminder(info,2,{test:true}));acts.append(b1,b2);test.append(title,acts);wrap.appendChild(test);
-}
-function renderHistory58TimeBoundaryTest(wrap){
- const test=document.createElement('div');test.className='semester-reminder-test history58-time-test';
- const title=document.createElement('div');title.className='semester-reminder-test-title';title.textContent='History58 時間邊界測試（正式版前移除）';
- const help=document.createElement('div');help.className='semester-action-help';help.textContent='只覆寫這台裝置上的「系統今天日期」供測試，不會修改任何歷史紀錄日期。設定後會重新載入頁面；按「恢復真實日期」即可退出測試。';
- const row=document.createElement('div');row.className='history58-time-row';
- const input=document.createElement('input');input.type='date';input.className='history58-time-input';input.value=history58TestDate()||TODAY;
- const apply=document.createElement('button');apply.type='button';apply.className='btn';apply.textContent='套用測試日期';
- const reset=document.createElement('button');reset.type='button';reset.className='btn';reset.textContent='恢復真實日期';
- apply.addEventListener('click',()=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(input.value))return alert('請先選擇測試日期。');localStorage.setItem(HISTORY58_TEST_DATE_KEY,input.value);location.reload()});
- reset.addEventListener('click',()=>{localStorage.removeItem(HISTORY58_TEST_DATE_KEY);location.reload()});
- row.append(input,apply,reset);
- const active=document.createElement('div');active.className='semester-action-help';
- const cur=currentSemesterInfo(),stage=semesterBackupReminderStage(cur,TODAY),expired=expiredSemesterInfos(TODAY);
- active.textContent=`目前判定日期：${TODAY}${history58TestDate()?'（測試日期）':'（真實日期）'}｜目前學期：${cur?.label||'無法判定'}｜學期末提醒階段：${stage===1?'第一次':stage===2?'第二次':'無'}｜已到期學期：${expired.length?expired.map(x=>x.label).join('、'):'無'}`;
- test.append(title,help,row,active);wrap.appendChild(test);
 }
 function currentSemesterInfo(){return semesterInfoFromDate(TODAY)}
 function activeRecordViewSemesterInfo(){return backupReadOnlyMode&&backupSemesterInfo?backupSemesterInfo:currentSemesterInfo()}
@@ -3375,11 +3339,7 @@ function renderSemesterManager(box){
    const yes=document.createElement('button');yes.type='button';yes.className='btn danger';yes.textContent=`確認永久清除 ${records.length} 筆`;yes.addEventListener('click',(ev)=>{ev.preventDefault();ev.stopPropagation();const set=archivedSemesterSet();set.delete(info.key);state.archivedSemesters=[...set];if(historySemesterViewKey===info.key)historySemesterViewKey='';commitSemesterClear(info.key);categorySemesterMode=true;syncCategoryModeButtons();renderCats()});
    confirmActions.append(back,yes);confirmBox.append(msg,confirmActions);delItem.appendChild(confirmBox);
  });
- actions.append(viewItem,exportItem,archiveItem,delItem);wrap.append(list,actions);renderSemesterBackupImport(wrap);renderSemesterReminderTest(wrap);renderHistory58TimeBoundaryTest(wrap);
- const expiryTest=document.createElement('div');expiryTest.className='semester-reminder-test';
- const expiryTitle=document.createElement('div');expiryTitle.className='semester-reminder-test-title';expiryTitle.textContent='History57 到期規則確認';
- const expiryText=document.createElement('div');expiryText.className='semester-action-help';expiryText.textContent='保存期限＝學期結束日＋1年；隔天起視為到期。例：114上保留至 2027-01-31，2027-02-01 起到期；114下保留至 2027-07-31，2027-08-01 起到期。到期後不會靜默刪除，而是在下一次開啟網站時要求備份確認並刪除。此測試型說明正式版前會移除。';
- expiryTest.append(expiryTitle,expiryText);wrap.appendChild(expiryTest);
+ actions.append(viewItem,exportItem,archiveItem,delItem);wrap.append(list,actions);renderSemesterBackupImport(wrap);
  box.appendChild(wrap);drawOptions();refreshActions();
 }
 async function exportSemesterData(key){
