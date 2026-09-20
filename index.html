@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>作業點名簿＋ v2.0 History57｜到期開啟強制處理修正版</title>
+<title>作業點名簿＋ v2.0 History58｜到期開啟強制處理修正版</title>
 <style>
 :root{--bg:#f4f6f8;--card:#fff;--line:#dfe5ea;--text:#2f3b46;--muted:#8794a1;--blue:#4da3ff;--red:#ef5350;--yellow:#f6c945;--green:#59bf76;--orange:#f79a49}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif}
@@ -2070,12 +2070,17 @@ body.backup-readonly-mode .history-delete-btn,
 body.backup-readonly-mode .history-edit-panel,
 body.backup-readonly-mode #historyMainEditBanner{display:none!important}
 body.backup-readonly-mode #historyUsageHint{display:none!important}
+
+/* History58：時間邊界測試入口；正式版前移除 */
+.history58-time-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}
+.history58-time-input{min-height:38px;padding:7px 9px;border:1px solid #d8dde5;border-radius:9px;background:#fff;color:#243142;font:inherit}
+@media(max-width:900px){.history58-time-row{align-items:stretch}.history58-time-input{width:100%}.history58-time-row .btn{flex:1 1 auto}}
 </style>
 
 
 </head>
 <body>
-<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 History57</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
+<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 History58</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
 <div id="sandboxNotice" style="margin:10px auto 0;max-width:1180px;padding:8px 12px;border:1px solid #d5a72c;border-radius:10px;background:#fff8dc;color:#6b5314;font-size:13px;font-weight:700;box-sizing:border-box">🧪 r8 Sandbox 測試資料隔離模式｜不讀寫正式版 localStorage／Firestore 文件</div>
 <section id="cloudPanel" class="cloud-panel" aria-hidden="true">
   <div class="cloud-panel-head">
@@ -2260,9 +2265,14 @@ function localToday(){
  const d=new Date(),y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');
  return `${y}-${m}-${day}`;
 }
-let TODAY=localToday();
+// History58：僅供離峰／時間邊界實機測試。正式版前會移除日期覆寫入口。
+const HISTORY58_TEST_DATE_KEY='hwCheckerHistory58TestDate';
+function history58TestDate(){
+ try{const v=String(localStorage.getItem(HISTORY58_TEST_DATE_KEY)||'');return /^\d{4}-\d{2}-\d{2}$/.test(v)?v:''}catch{return ''}
+}
+let TODAY=history58TestDate()||localToday();
 function refreshToday(){
- const now=localToday();
+ const now=history58TestDate()||localToday();
  if(now!==TODAY)TODAY=now;
  return TODAY;
 }
@@ -3216,6 +3226,22 @@ function renderSemesterReminderTest(wrap){
  const b2=document.createElement('button');b2.type='button';b2.className='btn';b2.textContent='測試第二次提醒';
  b1.addEventListener('click',()=>showSemesterBackupReminder(info,1,{test:true}));b2.addEventListener('click',()=>showSemesterBackupReminder(info,2,{test:true}));acts.append(b1,b2);test.append(title,acts);wrap.appendChild(test);
 }
+function renderHistory58TimeBoundaryTest(wrap){
+ const test=document.createElement('div');test.className='semester-reminder-test history58-time-test';
+ const title=document.createElement('div');title.className='semester-reminder-test-title';title.textContent='History58 時間邊界測試（正式版前移除）';
+ const help=document.createElement('div');help.className='semester-action-help';help.textContent='只覆寫這台裝置上的「系統今天日期」供測試，不會修改任何歷史紀錄日期。設定後會重新載入頁面；按「恢復真實日期」即可退出測試。';
+ const row=document.createElement('div');row.className='history58-time-row';
+ const input=document.createElement('input');input.type='date';input.className='history58-time-input';input.value=history58TestDate()||TODAY;
+ const apply=document.createElement('button');apply.type='button';apply.className='btn';apply.textContent='套用測試日期';
+ const reset=document.createElement('button');reset.type='button';reset.className='btn';reset.textContent='恢復真實日期';
+ apply.addEventListener('click',()=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(input.value))return alert('請先選擇測試日期。');localStorage.setItem(HISTORY58_TEST_DATE_KEY,input.value);location.reload()});
+ reset.addEventListener('click',()=>{localStorage.removeItem(HISTORY58_TEST_DATE_KEY);location.reload()});
+ row.append(input,apply,reset);
+ const active=document.createElement('div');active.className='semester-action-help';
+ const cur=currentSemesterInfo(),stage=semesterBackupReminderStage(cur,TODAY),expired=expiredSemesterInfos(TODAY);
+ active.textContent=`目前判定日期：${TODAY}${history58TestDate()?'（測試日期）':'（真實日期）'}｜目前學期：${cur?.label||'無法判定'}｜學期末提醒階段：${stage===1?'第一次':stage===2?'第二次':'無'}｜已到期學期：${expired.length?expired.map(x=>x.label).join('、'):'無'}`;
+ test.append(title,help,row,active);wrap.appendChild(test);
+}
 function currentSemesterInfo(){return semesterInfoFromDate(TODAY)}
 function activeRecordViewSemesterInfo(){return backupReadOnlyMode&&backupSemesterInfo?backupSemesterInfo:currentSemesterInfo()}
 function semesterKeyOfRecord(h){return semesterInfoFromDate(h?.date)?.key||''}
@@ -3349,7 +3375,7 @@ function renderSemesterManager(box){
    const yes=document.createElement('button');yes.type='button';yes.className='btn danger';yes.textContent=`確認永久清除 ${records.length} 筆`;yes.addEventListener('click',(ev)=>{ev.preventDefault();ev.stopPropagation();const set=archivedSemesterSet();set.delete(info.key);state.archivedSemesters=[...set];if(historySemesterViewKey===info.key)historySemesterViewKey='';commitSemesterClear(info.key);categorySemesterMode=true;syncCategoryModeButtons();renderCats()});
    confirmActions.append(back,yes);confirmBox.append(msg,confirmActions);delItem.appendChild(confirmBox);
  });
- actions.append(viewItem,exportItem,archiveItem,delItem);wrap.append(list,actions);renderSemesterBackupImport(wrap);renderSemesterReminderTest(wrap);
+ actions.append(viewItem,exportItem,archiveItem,delItem);wrap.append(list,actions);renderSemesterBackupImport(wrap);renderSemesterReminderTest(wrap);renderHistory58TimeBoundaryTest(wrap);
  const expiryTest=document.createElement('div');expiryTest.className='semester-reminder-test';
  const expiryTitle=document.createElement('div');expiryTitle.className='semester-reminder-test-title';expiryTitle.textContent='History57 到期規則確認';
  const expiryText=document.createElement('div');expiryText.className='semester-action-help';expiryText.textContent='保存期限＝學期結束日＋1年；隔天起視為到期。例：114上保留至 2027-01-31，2027-02-01 起到期；114下保留至 2027-07-31，2027-08-01 起到期。到期後不會靜默刪除，而是在下一次開啟網站時要求備份確認並刪除。此測試型說明正式版前會移除。';
