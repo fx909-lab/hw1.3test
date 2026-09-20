@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>作業點名簿＋ v2.0 History53｜匯入入口版面精簡</title>
+<title>作業點名簿＋ v2.0 History54｜匯入入口版面精簡</title>
 <style>
 :root{--bg:#f4f6f8;--card:#fff;--line:#dfe5ea;--text:#2f3b46;--muted:#8794a1;--blue:#4da3ff;--red:#ef5350;--yellow:#f6c945;--green:#59bf76;--orange:#f79a49}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif}
@@ -1986,7 +1986,7 @@ html.mobile-ux .cat-data-clear-back{white-space:nowrap!important;}
 /* History52：外部舊學期備份只讀查看。正式 state 不寫回、不合併、不觸發雲端同步。 */
 .backup-readonly-banner{margin:8px 0 12px;padding:10px 12px;border:1px solid #d7c8a5;border-radius:12px;background:#fffaf0;font-size:13px;line-height:1.55}
 .backup-readonly-banner b{font-size:14px}
-/* History53：匯入入口改用學期操作項目同款「按鈕＋下方說明」，不改 History52 的確認與唯讀匯入流程。 */
+/* History54：匯入入口改用學期操作項目同款「按鈕＋下方說明」，不改 History52 的確認與唯讀匯入流程。 */
 .semester-backup-import{width:100%;box-sizing:border-box;margin-top:10px}
 .semester-backup-import>.btn{min-height:32px!important;padding:6px 10px!important;font-size:12.5px!important;line-height:1.15!important;border-radius:8px!important;white-space:nowrap;width:auto!important}
 .semester-backup-import>.semester-action-help{margin-top:4px}
@@ -2026,11 +2026,24 @@ body.backup-readonly-mode #categoryEditBtn,body.backup-readonly-mode #categoryDa
   }
 }
 </style>
+<style id="history54-backup-readonly-export-css">
+/* History54：外部學期備份可查閱／輸出，但所有會改動資料的入口在唯讀模式停用。 */
+body.backup-readonly-mode .import-label,
+body.backup-readonly-mode #cloudToggleBtn,
+body.backup-readonly-mode #historyBatchDeleteBtn,
+body.backup-readonly-mode #historyBatchToolbar,
+body.backup-readonly-mode .history-record-edit-btn,
+body.backup-readonly-mode .history-ok-edit-btn,
+body.backup-readonly-mode .history-delete-btn,
+body.backup-readonly-mode .history-edit-panel,
+body.backup-readonly-mode #historyMainEditBanner{display:none!important}
+body.backup-readonly-mode #historyUsageHint{display:none!important}
+</style>
 
 
 </head>
 <body>
-<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 History53</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
+<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 History54</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
 <div id="sandboxNotice" style="margin:10px auto 0;max-width:1180px;padding:8px 12px;border:1px solid #d5a72c;border-radius:10px;background:#fff8dc;color:#6b5314;font-size:13px;font-weight:700;box-sizing:border-box">🧪 r8 Sandbox 測試資料隔離模式｜不讀寫正式版 localStorage／Firestore 文件</div>
 <section id="cloudPanel" class="cloud-panel" aria-hidden="true">
   <div class="cloud-panel-head">
@@ -3040,6 +3053,7 @@ function semesterInfoFromDate(dateStr){
  return {key:`${startYear}-${isUpper?'upper':'lower'}`,label:`${startYear-1911} 學年度${term}`,start:isUpper?`${startYear}-08-01`:`${startYear+1}-02-01`,end:isUpper?`${startYear+1}-01-31`:`${startYear+1}-07-31`};
 }
 function currentSemesterInfo(){return semesterInfoFromDate(TODAY)}
+function activeRecordViewSemesterInfo(){return backupReadOnlyMode&&backupSemesterInfo?backupSemesterInfo:currentSemesterInfo()}
 function semesterKeyOfRecord(h){return semesterInfoFromDate(h?.date)?.key||''}
 function isCurrentSemesterRecord(h){const cur=currentSemesterInfo();return !!cur&&semesterKeyOfRecord(h)===cur.key}
 function historyForSemester(semesterKey){return state.history.filter(h=>semesterKeyOfRecord(h)===semesterKey)}
@@ -3802,12 +3816,14 @@ function statusText(st,h=null,seat=null){
  return `<span class="student-status-text"><span class="dot ${cls}"></span>${labels[cls]||labels.red}</span>`;
 }
 function studentQuickOkButton(h,seat){
+ if(backupReadOnlyMode)return '';
  if(!h||!Number.isInteger(Number(seat))||isReturnSlipCategory(h.catId))return '';
  const st=h.statuses?.[seat]||'red';
  if(!['red','yellow','green','ring','orange'].includes(st)||isStatusFullyResolved(h,seat))return '';
  return `<button type="button" class="btn student-quick-ok" data-history-id="${esc(h.id)}" data-seat="${Number(seat)}">補登 OK</button>`;
 }
 function quickResolveStudentHistory(historyId,seat){
+ if(backupReadOnlyMode)return;
  const h=state.history.find(x=>x.id===historyId);seat=Number(seat);
  if(!h||!Number.isInteger(seat)||seat<1||seat>state.studentCount)return;
  const st=h.statuses?.[seat];
@@ -3830,7 +3846,7 @@ function studentRecordIsPending(h,seat){
  return ['red','yellow','green','ring','orange'].includes(st)&&!isStatusFullyResolved(h,seat);
 }
 function categoryPendingForStudent(c,seat){
- const key=currentSemesterInfo()?.key||'';
+ const key=activeRecordViewSemesterInfo()?.key||'';
  if(c.kind==='continuous')return studentRecordIsPending(latestRecord(c.id,key),seat);
  return state.history.some(h=>h.catId===c.id&&semesterKeyOfRecord(h)===key&&studentRecordIsPending(h,seat));
 }
@@ -3871,7 +3887,7 @@ function renderStudentRecord(){
    b.addEventListener('click',()=>{selectedStudentSeat=n;renderStudentRecord()});
    picker.appendChild(b);
  }
- const currentSemester=currentSemesterInfo(),semesterKey=currentSemester?.key||'';
+ const currentSemester=activeRecordViewSemesterInfo(),semesterKey=currentSemester?.key||'';
  const cats=state.categories.filter(c=>studentHasAnyHistory(c.id,semesterKey));
  if(!cats.length){body.innerHTML='<div class="student-record-empty">目前學期尚無任何正式作業紀錄。</div>';return}
  const continuous=sortStudentRecordCategories(cats.filter(c=>c.kind==='continuous'&&!isReturnSlipCategory(c)),selectedStudentSeat);
@@ -3976,14 +3992,14 @@ function parseStudentExportRange(raw){
  return {seats:seats.sort((a,b)=>a-b)};
 }
 function studentExportRows(seat){
- const cats=state.categories.filter(c=>studentHasAnyHistory(c.id,currentSemesterInfo()?.key||''));
+ const cats=state.categories.filter(c=>studentHasAnyHistory(c.id,activeRecordViewSemesterInfo()?.key||''));
  const continuous=cats.filter(c=>c.kind==='continuous');
  const independent=cats.filter(c=>c.kind==='independent');
  const rows=[[`${seat}號 學生作業紀錄`],[]];
  if(continuous.length){
    rows.push(['連續作業｜最新一期'],['類別','日期','進度','狀態']);
    for(const c of continuous){
-     const h=latestRecord(c.id,currentSemesterInfo()?.key||'');if(!h)continue;
+     const h=latestRecord(c.id,activeRecordViewSemesterInfo()?.key||'');if(!h)continue;
      rows.push([c.name,h.date,h.content||'—',studentExportStatusText(h,seat)]);
    }
  }
@@ -3991,7 +4007,7 @@ function studentExportRows(seat){
    if(continuous.length)rows.push([]);
    rows.push(['獨立項目｜全部紀錄'],['類別','日期','進度／標題','狀態']);
    for(const c of independent){
-     const recs=state.history.filter(h=>h.catId===c.id&&isCurrentSemesterRecord(h)).sort(compareHistory);
+     const recs=state.history.filter(h=>h.catId===c.id&&semesterKeyOfRecord(h)===(activeRecordViewSemesterInfo()?.key||'')).sort(compareHistory);
      for(const h of recs)rows.push([c.name,h.date,h.content||'—',studentExportStatusText(h,seat)]);
    }
  }
@@ -4001,13 +4017,13 @@ function studentSummaryRows(seats){
  // alpha.44：匯出給老師查閱的彙總表只保留實際需要的紀錄欄位，
  // 不再輸出「連續作業／獨立項目」這個系統分類欄。
  const rows=[['座號','類別','日期','進度／標題','狀態']];
- const cats=state.categories.filter(c=>studentHasAnyHistory(c.id,currentSemesterInfo()?.key||''));
+ const cats=state.categories.filter(c=>studentHasAnyHistory(c.id,activeRecordViewSemesterInfo()?.key||''));
  for(const seat of seats){
    for(const c of cats){
      if(c.kind==='continuous'){
-       const h=latestRecord(c.id,currentSemesterInfo()?.key||'');if(h)rows.push([String(seat),c.name,h.date,h.content||'—',studentExportStatusText(h,seat)]);
+       const h=latestRecord(c.id,activeRecordViewSemesterInfo()?.key||'');if(h)rows.push([String(seat),c.name,h.date,h.content||'—',studentExportStatusText(h,seat)]);
      }else{
-       const recs=state.history.filter(h=>h.catId===c.id&&isCurrentSemesterRecord(h)).sort(compareHistory);
+       const recs=state.history.filter(h=>h.catId===c.id&&semesterKeyOfRecord(h)===(activeRecordViewSemesterInfo()?.key||'')).sort(compareHistory);
        for(const h of recs)rows.push([String(seat),c.name,h.date,h.content||'—',studentExportStatusText(h,seat)]);
      }
    }
@@ -4069,19 +4085,20 @@ function exportStudentRecordsExcel(){
  }
  const sheets=[{name:'彙總',rows:studentSummaryRows(seats)},...seats.map(seat=>({name:`${String(seat).padStart(2,'0')}號`,rows:studentExportRows(seat)}))];
  const rangeLabel=scope==='current'?`${String(selectedStudentSeat).padStart(2,'0')}號`:scope==='all'?'全班':`${Math.min(...seats)}-${Math.max(...seats)}號`;
- downloadWorkbookXlsx(sheets,`學生個人作業紀錄_${rangeLabel}_${TODAY}.xlsx`);
+ const semesterTag=backupReadOnlyMode&&backupSemesterInfo?`_${String(backupSemesterInfo.label||'備份').replace(/\s+/g,'')}`:'';
+ downloadWorkbookXlsx(sheets,`學生個人作業紀錄${semesterTag}_${rangeLabel}_${TODAY}.xlsx`);
  toggleStudentExportPanel(false);
 }
 function overviewExportData(){
- const cols=[];
+ const cols=[],backupSemesterKey=backupReadOnlyMode?(activeRecordViewSemesterInfo()?.key||''):'';
  for(const c of state.categories){
-   if(c.showOverview===false||!studentHasAnyHistory(c.id))continue;
+   if(c.showOverview===false||!studentHasAnyHistory(c.id,backupSemesterKey||null))continue;
    if(c.kind==='continuous'){
-     const h=latestRecord(c.id);
+     const h=latestRecord(c.id,backupSemesterKey||null);
      if(h)cols.push({type:'continuous',c,h});
    }else{
      // 獨立項目：每一筆正式紀錄各自成為 Excel 一欄，避免把多篇作品塞在同一格。
-     const recs=state.history.filter(h=>h.catId===c.id).sort(compareHistory);
+     const recs=state.history.filter(h=>h.catId===c.id&&(!backupSemesterKey||semesterKeyOfRecord(h)===backupSemesterKey)).sort(compareHistory);
      for(const h of recs)cols.push({type:'independent',c,h});
    }
  }
@@ -4135,7 +4152,8 @@ function exportOverviewExcel(){
   {name:'xl/worksheets/sheet1.xml',text:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>${sheetRows}</sheetData></worksheet>`}
  ];
  const blob=makeStoredZip(files),url=URL.createObjectURL(blob),a=document.createElement('a');
- a.href=url;a.download=`作業最新進度總覽_${TODAY}.xlsx`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+ const semesterTag=backupReadOnlyMode&&backupSemesterInfo?`${String(backupSemesterInfo.label||'備份').replace(/\s+/g,'')}_`:'';
+ a.href=url;a.download=`作業最新進度總覽_${semesterTag}${TODAY}.xlsx`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 const OVERVIEW_VIEW_MODE_KEY='hwCheckerR8SandboxOverviewViewModeV1';
 function setOverviewViewMode(mode,save=true){
@@ -4214,7 +4232,7 @@ function overviewProgressDateHTML(h,c){
  return `<div class="overview-progress-date">${progress?`<span>${esc(progress)}</span>`:''}<span class="overview-date-only">${esc(date)}</span></div>`;
 }
 function overviewColumns(){
- const cols=[],semesterKey=currentSemesterInfo()?.key||'';
+ const cols=[],semesterKey=(backupReadOnlyMode?activeRecordViewSemesterInfo():currentSemesterInfo())?.key||'';
  for(const c of state.categories){
    if(c.showOverview===false||!studentHasAnyHistory(c.id,semesterKey))continue;
    if(c.kind==='continuous'){
@@ -4230,7 +4248,7 @@ function overviewColumns(){
 function renderOverview(){
  const cols=overviewColumns();
  $('overviewHead').innerHTML=`<tr><th class="seat-col">類別</th>${cols.map(({c})=>`<th class="cat-head">${esc(c.name)}${c.kind==='independent'?'<span class="independent-badge" title="獨立項目" aria-label="獨立項目">獨</span>':''}</th>`).join('')}</tr><tr><th class="seat-col axis-text">座號＼進度</th>${cols.map(({c,h})=>`<th class="date-head${c.kind==='independent'?' overview-editable-progress':''}"${c.kind==='independent'?` data-work-label-id="${esc(h.id)}" title="雙擊可自訂總覽進度縮寫"`:''}>${overviewProgressDateHTML(h,c)}</th>`).join('')}</tr>`;
- document.querySelectorAll('#overviewHead .overview-editable-progress[data-work-label-id]').forEach(th=>{
+ if(!backupReadOnlyMode)document.querySelectorAll('#overviewHead .overview-editable-progress[data-work-label-id]').forEach(th=>{
    th.addEventListener('dblclick',e=>{e.preventDefault();e.stopPropagation();editIndependentWorkLabel(String(th.dataset.workLabelId||''))});
  });
  if($('overviewPanel')?.classList.contains('overview-sticky-mode'))requestAnimationFrame(updateOverviewStickyMetrics);
@@ -4260,7 +4278,7 @@ function previewManualHistoryParts(h,seat){
  }
  return resolvedPartState(h,seat);
 }
-function toggleManualHistoryOK(historyId,seat){
+function toggleManualHistoryOK(historyId,seat){if(backupReadOnlyMode)return;
  const h=state.history.find(x=>x.id===historyId);if(!h||historyOkEditId!==historyId)return;
  const c=state.categories.find(x=>x.id===h.catId);
  if(!c)return;
@@ -4452,7 +4470,7 @@ function updateHistoryBatchToolbar(){
  if(count)count.textContent=`已選 ${historyBatchDeleteIds.size} 筆`;if(confirmBtn)confirmBtn.disabled=historyBatchDeleteIds.size===0;if(toggle)toggle.textContent=historyBatchDeleteMode?'離開批次刪除':'批次刪除';
 }
 function cancelHistoryBatchDelete(render=true){historyBatchDeleteMode=false;historyBatchDeleteIds.clear();const box=$('historyBatchDeleteConfirm');if(box)box.remove();updateHistoryBatchToolbar();if(render)renderTable();}
-function toggleHistoryBatchDeleteMode(){if(historyBatchDeleteMode){cancelHistoryBatchDelete();return}if(historyEditId||historyOkEditId){alert('請先完成或取消目前的歷史編輯／補登 OK，再進行批次刪除。');return}historyBatchDeleteMode=true;historyBatchDeleteIds.clear();updateHistoryBatchToolbar();renderTable();}
+function toggleHistoryBatchDeleteMode(){if(backupReadOnlyMode)return;if(historyBatchDeleteMode){cancelHistoryBatchDelete();return}if(historyEditId||historyOkEditId){alert('請先完成或取消目前的歷史編輯／補登 OK，再進行批次刪除。');return}historyBatchDeleteMode=true;historyBatchDeleteIds.clear();updateHistoryBatchToolbar();renderTable();}
 function toggleHistoryBatchId(id){id=String(id||'');if(!SAFE_ID.test(id)||!historyBatchDeleteMode)return;if(historyBatchDeleteIds.has(id))historyBatchDeleteIds.delete(id);else historyBatchDeleteIds.add(id);updateHistoryBatchToolbar();renderTable();}
 function selectAllHistoryBatch(){if(!historyBatchDeleteMode)return;const ids=historyBatchCurrentIds();const all=ids.length>0&&ids.every(id=>historyBatchDeleteIds.has(id));historyBatchDeleteIds.clear();if(!all)ids.forEach(id=>historyBatchDeleteIds.add(id));updateHistoryBatchToolbar();renderTable();}
 function showHistoryBatchDeleteConfirm(){
