@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>作業點名簿＋ v2.0 History52｜舊學期備份唯讀匯入第一階段</title>
+<title>作業點名簿＋ v2.0 History53｜匯入入口版面精簡</title>
 <style>
 :root{--bg:#f4f6f8;--card:#fff;--line:#dfe5ea;--text:#2f3b46;--muted:#8794a1;--blue:#4da3ff;--red:#ef5350;--yellow:#f6c945;--green:#59bf76;--orange:#f79a49}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif}
@@ -1986,8 +1986,10 @@ html.mobile-ux .cat-data-clear-back{white-space:nowrap!important;}
 /* History52：外部舊學期備份只讀查看。正式 state 不寫回、不合併、不觸發雲端同步。 */
 .backup-readonly-banner{margin:8px 0 12px;padding:10px 12px;border:1px solid #d7c8a5;border-radius:12px;background:#fffaf0;font-size:13px;line-height:1.55}
 .backup-readonly-banner b{font-size:14px}
-.semester-backup-import{margin-top:14px;padding-top:14px;border-top:1px dashed rgba(0,0,0,.18)}
-.semester-backup-import-title{font-weight:800;margin-bottom:7px}
+/* History53：匯入入口改用學期操作項目同款「按鈕＋下方說明」，不改 History52 的確認與唯讀匯入流程。 */
+.semester-backup-import{width:100%;box-sizing:border-box;margin-top:10px}
+.semester-backup-import>.btn{min-height:32px!important;padding:6px 10px!important;font-size:12.5px!important;line-height:1.15!important;border-radius:8px!important;white-space:nowrap;width:auto!important}
+.semester-backup-import>.semester-action-help{margin-top:4px}
 .semester-backup-summary{margin-top:10px;padding:10px 12px;border-radius:10px;background:rgba(0,0,0,.035);line-height:1.6;font-size:13px}
 .semester-backup-summary-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 body.backup-readonly-mode #homeworkEntryBody,body.backup-readonly-mode #contactSection{display:none!important}
@@ -2028,7 +2030,7 @@ body.backup-readonly-mode #categoryEditBtn,body.backup-readonly-mode #categoryDa
 
 </head>
 <body>
-<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 History52</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
+<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 History53</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
 <div id="sandboxNotice" style="margin:10px auto 0;max-width:1180px;padding:8px 12px;border:1px solid #d5a72c;border-radius:10px;background:#fff8dc;color:#6b5314;font-size:13px;font-weight:700;box-sizing:border-box">🧪 r8 Sandbox 測試資料隔離模式｜不讀寫正式版 localStorage／Firestore 文件</div>
 <section id="cloudPanel" class="cloud-panel" aria-hidden="true">
   <div class="cloud-panel-head">
@@ -3097,9 +3099,8 @@ function openReadOnlySemesterBackup(result){
 }
 function renderSemesterBackupImport(wrap){
  const area=document.createElement('div');area.className='semester-backup-import';
- const title=document.createElement('div');title.className='semester-backup-import-title';title.textContent='舊學期備份';
- const help=document.createElement('div');help.className='semester-action-help';help.textContent='開啟由「學期資料管理 → 匯出」產生的單一學期 JSON。只讀查看，不合併、不覆蓋，也不寫回 Firebase。';
  const pick=document.createElement('button');pick.type='button';pick.className='btn';pick.textContent='匯入舊資料備份';
+ const help=document.createElement('div');help.className='semester-action-help';help.textContent='開啟已匯出的學期備份，以唯讀方式查看，不會覆蓋目前資料。';
  const input=document.createElement('input');input.type='file';input.accept='.json,application/json';input.hidden=true;
  pick.addEventListener('click',()=>input.click());
  input.addEventListener('change',()=>{
@@ -3118,7 +3119,7 @@ function renderSemesterBackupImport(wrap){
      acts.append(cancel,open);summary.append(text,acts);area.appendChild(summary);summary.scrollIntoView({block:'nearest',behavior:'smooth'});
    };r.readAsText(f,'utf-8');
  });
- area.append(title,help,pick,input);wrap.appendChild(area);
+ area.append(pick,help,input);wrap.appendChild(area);
 }
 function renderSemesterManager(box){
  const semesters=detectedSemesters(),cur=currentSemesterInfo(),archived=archivedSemesterSet();
