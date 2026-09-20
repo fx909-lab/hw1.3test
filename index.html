@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>作業點名簿＋｜v2.0 Production RC5</title>
+<title>作業點名簿＋｜v2.0 Production RC6</title>
 <style>
 :root{--bg:#f4f6f8;--card:#fff;--line:#dfe5ea;--text:#2f3b46;--muted:#8794a1;--blue:#4da3ff;--red:#ef5350;--yellow:#f6c945;--green:#59bf76;--orange:#f79a49}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif}
@@ -2069,7 +2069,7 @@ body.backup-readonly-mode .history-edit-panel,
 body.backup-readonly-mode #historyMainEditBanner{display:none!important}
 body.backup-readonly-mode #historyUsageHint{display:none!important}
 
-/* Production RC5：未登入本機資料逐筆接管隔離提示 */
+/* Production RC6：未登入本機資料逐筆接管隔離提示 */
 .guest-handoff{margin-top:12px;padding:12px 14px;border:1px solid var(--line,#d7dbe2);border-radius:12px;background:rgba(127,127,127,.06)}
 .guest-handoff[hidden]{display:none!important}
 .guest-handoff-title{font-weight:800;margin-bottom:6px}
@@ -2081,7 +2081,7 @@ body.backup-readonly-mode #historyUsageHint{display:none!important}
 
 </head>
 <body>
-<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 Production RC5</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
+<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 Production RC6</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
 
 <section id="cloudPanel" class="cloud-panel" aria-hidden="true">
   <div class="cloud-panel-head">
@@ -3277,7 +3277,7 @@ function showSemesterClearPanel(footer){
 function showSemesterClearConfirm(panel,info){
  if(!info)return;panel.querySelector('.semester-clear-confirm')?.remove();const records=state.history.filter(h=>{const x=semesterInfoFromDate(h.date);return x?.key===info.key});if(!records.length)return alert('這個學期目前已沒有歷史資料。');
  const box=document.createElement('div');box.className='semester-clear-confirm';const msg=document.createElement('div');msg.textContent=`即將永久清除 ${info.label} 的 ${records.length} 筆歷史紀錄。類別本身與目前設定會保留；刪除後無法復原。`;
- const acts=document.createElement('div');acts.className='semester-clear-confirm-actions';const back=document.createElement('button');back.type='button';back.className='btn';back.textContent='返回選擇';back.addEventListener('click',()=>box.remove());
+ const acts=document.createElement('div');acts.className='semester-clear-confirm-actions';const back=document.createElement('button');back.type='button';back.className='btn';back.textContent='返回\n選擇';back.style.whiteSpace='pre-line';back.style.lineHeight='1.05';back.style.textAlign='center';back.addEventListener('click',()=>box.remove());
  const yes=document.createElement('button');yes.type='button';yes.className='btn danger';yes.textContent=`確認永久清除 ${records.length} 筆`;yes.addEventListener('click',()=>commitSemesterClear(info.key));acts.append(back,yes);box.append(msg,acts);panel.appendChild(box);
 }
 function commitSemesterClear(semesterKey){
@@ -3382,7 +3382,7 @@ function renderSemesterManager(box){
    const confirmBox=document.createElement('div');confirmBox.className='semester-manager-confirm';
    const msg=document.createElement('div');msg.textContent=`即將永久清除 ${info.label} 的 ${records.length} 筆歷史紀錄。類別、學生數與目前設定會保留；刪除後無法復原。`;
    const confirmActions=document.createElement('div');confirmActions.className='semester-manager-confirm-actions';
-   const back=document.createElement('button');back.type='button';back.className='btn';back.textContent='返回選擇';back.addEventListener('click',(ev)=>{ev.preventDefault();ev.stopPropagation();confirmBox.remove()});
+   const back=document.createElement('button');back.type='button';back.className='btn';back.textContent='返回\n選擇';back.style.whiteSpace='pre-line';back.style.lineHeight='1.05';back.style.textAlign='center';back.addEventListener('click',(ev)=>{ev.preventDefault();ev.stopPropagation();confirmBox.remove()});
    const yes=document.createElement('button');yes.type='button';yes.className='btn danger';yes.textContent=`確認永久清除 ${records.length} 筆`;yes.addEventListener('click',(ev)=>{ev.preventDefault();ev.stopPropagation();const set=archivedSemesterSet();set.delete(info.key);state.archivedSemesters=[...set];if(historySemesterViewKey===info.key)historySemesterViewKey='';commitSemesterClear(info.key);categorySemesterMode=true;syncCategoryModeButtons();renderCats()});
    confirmActions.append(back,yes);confirmBox.append(msg,confirmActions);delItem.appendChild(confirmBox);
  });
@@ -3398,7 +3398,7 @@ async function exportSemesterData(key){
 function showSemesterManagerDeleteConfirm(wrap,info,anchor=null){
  if(!info)return;wrap.querySelector('.semester-manager-confirm')?.remove();const records=historyForSemester(info.key);if(!records.length)return alert('這個學期目前已沒有歷史資料。');
  const box=document.createElement('div');box.className='semester-manager-confirm';const msg=document.createElement('div');msg.textContent=`即將永久清除 ${info.label} 的 ${records.length} 筆歷史紀錄。類別、學生數與目前設定會保留；刪除後無法復原。`;
- const acts=document.createElement('div');acts.className='semester-manager-confirm-actions',back=document.createElement('button'),yes=document.createElement('button');back.type=yes.type='button';back.className='btn';back.textContent='返回選擇';yes.className='btn danger';yes.textContent=`確認永久清除 ${records.length} 筆`;back.addEventListener('click',()=>box.remove());yes.addEventListener('click',()=>{const set=archivedSemesterSet();set.delete(info.key);state.archivedSemesters=[...set];if(historySemesterViewKey===info.key)historySemesterViewKey='';commitSemesterClear(info.key);categorySemesterMode=true;syncCategoryModeButtons();renderCats()});acts.append(back,yes);box.append(msg,acts);if(anchor&&anchor.parentNode===wrap)wrap.insertBefore(box,anchor);else wrap.appendChild(box);requestAnimationFrame(()=>box.scrollIntoView({block:'nearest',behavior:'smooth'}));
+ const acts=document.createElement('div');acts.className='semester-manager-confirm-actions',back=document.createElement('button'),yes=document.createElement('button');back.type=yes.type='button';back.className='btn';back.textContent='返回\n選擇';back.style.whiteSpace='pre-line';back.style.lineHeight='1.05';back.style.textAlign='center';yes.className='btn danger';yes.textContent=`確認永久清除 ${records.length} 筆`;back.addEventListener('click',()=>box.remove());yes.addEventListener('click',()=>{const set=archivedSemesterSet();set.delete(info.key);state.archivedSemesters=[...set];if(historySemesterViewKey===info.key)historySemesterViewKey='';commitSemesterClear(info.key);categorySemesterMode=true;syncCategoryModeButtons();renderCats()});acts.append(back,yes);box.append(msg,acts);if(anchor&&anchor.parentNode===wrap)wrap.insertBefore(box,anchor);else wrap.appendChild(box);requestAnimationFrame(()=>box.scrollIntoView({block:'nearest',behavior:'smooth'}));
 }
 function toggleSemesterManager(){if(backupReadOnlyMode){exitReadOnlySemesterBackup();return}if(historySemesterViewKey){historySemesterViewKey='';categorySemesterMode=true;categoryDataClearMode=false;categoryEditMode=false;syncCategoryModeButtons();renderCats();renderTable();return}categorySemesterMode=!categorySemesterMode;if(categorySemesterMode){categoryDataClearMode=false;categoryEditMode=false}syncCategoryModeButtons();renderCats();renderTable()}
 function enterCategoryDataClearMode(){
@@ -3417,7 +3417,7 @@ function showCategoryDataClearConfirm(footer){
  const box=document.createElement('div');box.className='cat-data-clear-confirm';
  const msg=document.createElement('span');msg.textContent=`即將永久清除 ${names.length} 個類別、共 ${records.length} 筆歷史紀錄：${names.join('、')}。類別本身會保留，刪除後無法復原。`;
  const acts=document.createElement('span');acts.className='actions';
- const no=document.createElement('button');no.type='button';no.className='btn cat-data-clear-back';no.textContent='返回選擇';no.addEventListener('click',()=>box.remove());
+ const no=document.createElement('button');no.type='button';no.className='btn cat-data-clear-back';no.textContent='返回\n選擇';no.style.whiteSpace='pre-line';no.style.lineHeight='1.05';no.style.textAlign='center';no.addEventListener('click',()=>box.remove());
  const yes=document.createElement('button');yes.type='button';yes.className='btn danger';yes.textContent=`確認永久清除 ${records.length} 筆`;yes.addEventListener('click',()=>{commitCategoryDataClear(ids);syncCategoryModeButtons()});
  acts.append(no,yes);box.append(msg,acts);
  footer.appendChild(box);
@@ -5223,7 +5223,7 @@ let CLOUD_BASE_STATE_KEY='hwCheckerV2CloudBaseStateV1:guest';
 const CLOUD_DEVICE_ID_KEY='hwCheckerV2CloudDeviceIdV1';
 // History60：記住「私人裝置，保持登入」的選擇，並讓切換立即套用到 Firebase Auth persistence。
 const CLOUD_PRIVATE_DEVICE_KEY='hwCheckerV2PrivateDeviceV1';
-// Production RC5：匿名 history 以永久 guestSourceId 作為來源身分，不再用可刪除／可重建的 來源 ID 判斷接管。
+// Production RC6：匿名 history 以永久 guestSourceId 作為來源身分，不再用可刪除／可重建的 來源 ID 判斷接管。
 // 一個來源一旦被任一帳號成功接管，就永久列入本機接管帳本；匿名區之後刪除它、修改它，或新增其他紀錄，都不會讓舊來源重新提供給別的帳號。
 const GUEST_STORE_KEY='hwCheckerV2SecureV1:guest';
 const GUEST_CLAIMED_SOURCE_KEY='hwCheckerV2GuestClaimedSourceV2';
