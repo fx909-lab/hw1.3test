@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>作業點名簿＋｜v2.0 Production RC2</title>
+<title>作業點名簿＋｜v2.0 Production RC3</title>
 <style>
 :root{--bg:#f4f6f8;--card:#fff;--line:#dfe5ea;--text:#2f3b46;--muted:#8794a1;--blue:#4da3ff;--red:#ef5350;--yellow:#f6c945;--green:#59bf76;--orange:#f79a49}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif}
@@ -2069,7 +2069,7 @@ body.backup-readonly-mode .history-edit-panel,
 body.backup-readonly-mode #historyMainEditBanner{display:none!important}
 body.backup-readonly-mode #historyUsageHint{display:none!important}
 
-/* Production RC2：未登入本機資料登入接管提示 */
+/* Production RC3：未登入本機資料跨帳號安全接管提示 */
 .guest-handoff{margin-top:12px;padding:12px 14px;border:1px solid var(--line,#d7dbe2);border-radius:12px;background:rgba(127,127,127,.06)}
 .guest-handoff[hidden]{display:none!important}
 .guest-handoff-title{font-weight:800;margin-bottom:6px}
@@ -2081,7 +2081,7 @@ body.backup-readonly-mode #historyUsageHint{display:none!important}
 
 </head>
 <body>
-<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 Production RC2</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
+<header class="topbar"><div class="brand-wrap"><div class="brand-block"><div class="brand">作業點名簿<span class="brand-plus">＋</span></div><div class="brand-version">v2.0 Production RC3</div></div></div><button id="exportBtn" class="btn" type="button">匯出備份</button><label class="btn import-label">匯入備份<input id="importFile" type="file" accept=".json,application/json" hidden></label><button id="cloudToggleBtn" class="btn cloud-status-btn" type="button"><span id="cloudDot" class="cloud-dot"></span><span id="cloudStatusShort">雲端未設定</span></button><button id="studentToggleBtn" class="btn" type="button">學生個人紀錄</button><button id="overviewToggleBtn" class="btn primary" type="button">作業最新進度總覽</button><button id="mobileMoreBtn" class="btn mobile-only" type="button" aria-expanded="false">更多 ▾</button><div id="mobileMoreMenu"></div></header>
 
 <section id="cloudPanel" class="cloud-panel" aria-hidden="true">
   <div class="cloud-panel-head">
@@ -5209,7 +5209,8 @@ let CLOUD_BASE_STATE_KEY='hwCheckerV2CloudBaseStateV1:guest';
 const CLOUD_DEVICE_ID_KEY='hwCheckerV2CloudDeviceIdV1';
 // History60：記住「私人裝置，保持登入」的選擇，並讓切換立即套用到 Firebase Auth persistence。
 const CLOUD_PRIVATE_DEVICE_KEY='hwCheckerV2PrivateDeviceV1';
-// Production RC2：guest 資料永遠保留在獨立 namespace；登入時只建立暫存候選，不直接刪除或搬移。
+// Production RC3：guest 資料永遠保留在獨立 namespace；是否曾帶入以「UID + guest內容指紋」記錄。
+// A 選擇不用 guest 不會替 guest 指定歸屬；B 仍可接管。只有某 UID 成功合併後，該 UID 對同一份 guest 不再重複提示／重複合併。
 const GUEST_STORE_KEY='hwCheckerV2SecureV1:guest';
 let pendingGuestState=null,pendingGuestCloudSnap=null,pendingGuestDecision=false;
 function guestStateHasMeaningfulData(raw){
@@ -5231,6 +5232,30 @@ function readGuestCandidate(){
   const parsed=JSON.parse(raw);
   return guestStateHasMeaningfulData(parsed)?sanitizeState(parsed,true):null;
  }catch{return null}
+}
+const GUEST_IMPORT_MARK_PREFIX='hwCheckerV2GuestImportedV1:';
+function guestFingerprint(raw){
+ try{
+  const clean=sanitizeState(raw,true);
+  const text=JSON.stringify(clean);
+  let h=2166136261;
+  for(let i=0;i<text.length;i++){h^=text.charCodeAt(i);h=Math.imul(h,16777619)}
+  return `${text.length}-${(h>>>0).toString(16)}`;
+ }catch{return ''}
+}
+function guestImportMarkerKey(uid){
+ const safe=String(uid||'').replace(/[^A-Za-z0-9_-]/g,'').slice(0,128);
+ return `${GUEST_IMPORT_MARK_PREFIX}${safe}`;
+}
+function hasImportedThisGuest(uid,guest){
+ if(!uid||!guest)return false;
+ const fp=guestFingerprint(guest);
+ return !!fp&&localStorage.getItem(guestImportMarkerKey(uid))===fp;
+}
+function rememberImportedGuest(uid,guest){
+ if(!uid||!guest)return;
+ const fp=guestFingerprint(guest);
+ if(fp)localStorage.setItem(guestImportMarkerKey(uid),fp);
 }
 function hideGuestHandoff(){if(ui.guestHandoffBox)ui.guestHandoffBox.hidden=true;pendingGuestDecision=false}
 function showGuestHandoff(snap){
@@ -5391,8 +5416,10 @@ async function initFirebase(){
      const generation=++authBootGeneration;
      authSessionReady=false;
      currentUser=user||null;
-     // RC2：只有從 guest → 已登入帳號時才捕捉未登入資料；不把 A 帳號資料誤當 guest。
-     pendingGuestState=(user&&ACTIVE_ACCOUNT_SCOPE==='guest')?readGuestCandidate():null;
+     // RC3：只有 guest → 已登入帳號時才捕捉匿名資料。
+     // 若「目前 UID」已成功帶入過完全相同的 guest 快照，就不再重複提示；其他 UID 仍可自行決定是否接管。
+     const guestCandidate=(user&&ACTIVE_ACCOUNT_SCOPE==='guest')?readGuestCandidate():null;
+     pendingGuestState=(user&&guestCandidate&&!hasImportedThisGuest(user.uid,guestCandidate))?guestCandidate:null;
      hideGuestHandoff();
      setCloudAccountScope(user?.uid||null);
      bridge?.switchAccount?.(user?.uid||null);
@@ -5814,7 +5841,13 @@ async function resolveGuestHandoff(mode){
     bridge?.applyRemote?.(merged);
     localStorage.setItem(CLOUD_DIRTY_KEY,'1');
     const ok=await uploadNow(true);
-    if(ok){startListener();setStatus('登入前資料已安全帶入','登入前資料已與目前帳號資料合併並同步；原始 guest 資料仍保留在這台裝置。','ok')}
+    if(ok){
+      // 只有「合併 + 雲端寫入成功」才記錄此 UID 已接管這份 guest。
+      // 不刪 guest；A 選帳號資料／稍後處理也不會寫 marker，因此 B 之後仍可選擇安全合併。
+      rememberImportedGuest(currentUser.uid,guest);
+      startListener();
+      setStatus('登入前資料已安全帶入','登入前資料已與目前帳號資料合併並同步；原始 guest 資料仍保留在這台裝置，同一帳號不會再重複帶入這份資料。','ok');
+    }
     return;
   }
   // account/later 都只切到帳號資料，不刪 guest。account 會立即載入雲端；later 同樣可正常使用帳號，但下次 guest→登入仍會再提示。
@@ -5829,7 +5862,7 @@ async function resolveGuestHandoff(mode){
     startListener();
     setStatus('已使用帳號資料',mode==='later'?'登入前資料仍保留在這台裝置；下次登入時可再處理。':'此帳號從自己的資料空間開始；登入前資料仍安全保留。','ok');
   }
- }catch(err){console.error('RC2 guest handoff failed',err);setStatus('登入前資料尚未處理','處理未完成；登入前資料仍保留，沒有被刪除。','err')}
+ }catch(err){console.error('RC3 guest handoff failed',err);setStatus('登入前資料尚未處理','處理未完成；登入前資料仍保留，沒有被刪除。','err')}
 }
 if(ui.guestHandoffMerge)ui.guestHandoffMerge.addEventListener('click',()=>resolveGuestHandoff('merge'));
 if(ui.guestHandoffAccount)ui.guestHandoffAccount.addEventListener('click',()=>resolveGuestHandoff('account'));
